@@ -11,8 +11,9 @@ from tensorboard_callback import TensorboardCallback
 
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
+import argparse
 
-def make_env(rank, seed=0):
+def make_env(rank, seed=0, broadcast=False):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -21,21 +22,31 @@ def make_env(rank, seed=0):
     :param rank: (int) index of the subprocess
     """
     def _init():
-        env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
-            stream_metadata = { # All of this is part is optional
-                "user": "v3-test", # choose your own username
-                "env_id": rank, # environment identifier
-                "color": "#662299", # choose your color :)
-                "extra": "", # any extra text you put here will be displayed
-            }
-        )
+        env = PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state')
+        if broadcast:
+            env = StreamWrapper(
+                env,
+                stream_metadata = { # All of this part is optional
+                    "user": "v3-test", # choose your own username
+                    "env_id": rank, # environment identifier
+                    "color": "#662299", # choose your color :)
+                    "extra": "", # any extra text you put here will be displayed
+                }
+            )
         env.reset(seed=(seed + rank))
         return env
     set_random_seed(seed)
     return _init
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Train a minimal Pokemon Red agent")
+    parser.add_argument(
+        "--broadcast",
+        action="store_true",
+        help="Stream training data to transdimensional.xyz",
+    )
+    args = parser.parse_args()
 
     use_wandb_logging = False
     ep_length = 2048 * 10
@@ -44,7 +55,7 @@ if __name__ == "__main__":
 
         
     num_cpu = 24  # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    env = SubprocVecEnv([make_env(i, broadcast=args.broadcast) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
                                      name_prefix="poke")

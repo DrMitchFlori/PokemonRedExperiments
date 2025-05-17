@@ -2,7 +2,8 @@
 
 ### New 10-19-24! Updated & Simplified V2 Training Script - See V2 below
 ### New 1-29-24! - [Multiplayer Live Training Broadcast](https://github.com/pwhiddy/pokerl-map-viz/)  🎦 🔴 [View Here](https://pwhiddy.github.io/pokerl-map-viz/)
-Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)  
+Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)
+The wrapper sends data to `wss://transdimensional.xyz/broadcast` by default when enabled.
 
 See how in [Training Broadcast](#training-broadcast) section
   
@@ -57,12 +58,12 @@ Note: the Pokemon.gb file MUST be in the main directory and your current directo
 
 - Trains faster and with less memory
 - Reaches Cerulean
-- Streams to map by default
+- Optional map streaming with the `--broadcast` flag
 - Other improvements
 
 Replaces the frame KNN with a coordinate based exploration reward, as well as some other tweaks.
 1. Previous steps but in the `v2` directory instead of `baselines`
-2. Run:
+2. Run (add `--broadcast` to share progress publicly):
 ```python baseline_fast_v2.py```
 
 ## Tracking Training Progress 📈
@@ -71,7 +72,7 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py) on your environment like this:
 ```python
 env = StreamWrapper(
-            env, 
+            env,
             stream_metadata = { # All of this is part is optional
                 "user": "super-cool-user", # choose your own username
                 "env_id": id, # environment identifier
@@ -80,6 +81,9 @@ env = StreamWrapper(
             }
         )
 ```
+
+The wrapper connects to `wss://transdimensional.xyz/broadcast` when broadcasting is enabled.
+Training scripts keep broadcasting **off by default**; pass `--broadcast` to opt in.
 
 Hack on the broadcast viewing client or set up your own local stream with this repo:  
   

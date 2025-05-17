@@ -3,6 +3,7 @@ from os.path import exists
 from pathlib import Path
 from red_gym_env_v2 import RedGymEnv
 from stream_agent_wrapper import StreamWrapper
+import argparse
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -10,7 +11,7 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 from tensorboard_callback import TensorboardCallback
 
-def make_env(rank, env_conf, seed=0):
+def make_env(rank, env_conf, seed=0, broadcast=False):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -19,21 +20,31 @@ def make_env(rank, env_conf, seed=0):
     :param rank: (int) index of the subprocess
     """
     def _init():
-        env = StreamWrapper(
-            RedGymEnv(env_conf), 
-            stream_metadata = { # All of this is part is optional
-                "user": "v2-default", # choose your own username
-                "env_id": rank, # environment identifier
-                "color": "#447799", # choose your color :)
-                "extra": "", # any extra text you put here will be displayed
-            }
-        )
+        env = RedGymEnv(env_conf)
+        if broadcast:
+            env = StreamWrapper(
+                env,
+                stream_metadata = { # All of this part is optional
+                    "user": "v2-default", # choose your own username
+                    "env_id": rank, # environment identifier
+                    "color": "#447799", # choose your color :)
+                    "extra": "", # any extra text you put here will be displayed
+                }
+            )
         env.reset(seed=(seed + rank))
         return env
     set_random_seed(seed)
     return _init
 
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Train the v2 Pokemon Red agent")
+    parser.add_argument(
+        "--broadcast",
+        action="store_true",
+        help="Stream training data to transdimensional.xyz",
+    )
+    args = parser.parse_args()
 
     use_wandb_logging = False
     ep_length = 2048 * 80
@@ -50,7 +61,7 @@ if __name__ == "__main__":
     print(env_config)
     
     num_cpu = 64 # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
+    env = SubprocVecEnv([make_env(i, env_config, broadcast=args.broadcast) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length//2, save_path=sess_path,
                                      name_prefix="poke")
