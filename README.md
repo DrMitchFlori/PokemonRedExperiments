@@ -92,6 +92,21 @@ You can track the progress in tensorboard by moving into the session directory a
 You can then navigate to `localhost:6006` in your browser to view metrics.  
 To enable wandb integration, change `use_wandb_logging` in the training script to `True`.
 
+## Running Tests
+
+Install the main requirements (for example `v2/requirements.txt`) and the development
+requirements:
+
+```bash
+pip install -r requirements-dev.txt
+```
+
+Ensure a copy of `PokemonRed.gb` is located in the repository root, then run:
+
+```bash
+pytest
+```
+
 ## Static Visualization 🐜
 Map visualization code can be found in `visualization/` directory.
 
