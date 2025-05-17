@@ -1,6 +1,7 @@
 import sys
 from os.path import exists
 from pathlib import Path
+import argparse
 from red_gym_env_v2 import RedGymEnv
 from stream_agent_wrapper import StreamWrapper
 from stable_baselines3 import PPO
@@ -35,6 +36,15 @@ def make_env(rank, env_conf, seed=0):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Train PPO agent with multiple environments")
+    parser.add_argument(
+        "--num-cpu",
+        type=int,
+        default=8,
+        help="number of environments to run in parallel",
+    )
+    args = parser.parse_args()
+
     use_wandb_logging = False
     ep_length = 2048 * 80
     sess_id = "runs"
@@ -48,8 +58,8 @@ if __name__ == "__main__":
             }
     
     print(env_config)
-    
-    num_cpu = 64 # Also sets the number of episodes per training iteration
+
+    num_cpu = args.num_cpu  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length//2, save_path=sess_path,
