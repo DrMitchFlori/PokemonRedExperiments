@@ -4,8 +4,7 @@ import json
 
 import gymnasium as gym
 
-X_POS_ADDRESS, Y_POS_ADDRESS = 0xD362, 0xD361
-MAP_N_ADDRESS = 0xD35E
+from poke_memory import X_POS_ADDRESS, Y_POS_ADDRESS, MAP_N_ADDRESS
 
 class StreamWrapper(gym.Wrapper):
     def __init__(self, env, stream_metadata={}):
