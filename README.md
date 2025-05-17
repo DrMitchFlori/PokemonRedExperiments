@@ -35,10 +35,10 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
 
 1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
-2. Move into the `baselines/` directory:  
- ```cd baselines```  
-3. Install dependencies:  
-```pip install -r requirements.txt```  
+2. Move into the `baselines/` directory:
+ ```cd baselines```
+3. Install dependencies:
+```pip install -r ../requirements.txt```
 It may be necessary in some cases to separately install the SDL libraries.  
 4. Run:  
 ```python run_pretrained_interactive.py```
