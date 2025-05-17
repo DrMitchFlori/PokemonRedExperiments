@@ -1,3 +1,10 @@
+"""Improved Pokémon Red Gymnasium environment.
+
+This second version includes additional observation channels such as player
+health, badge counts, recent actions and a global exploration map. Reward
+shaping incentivizes progression through events and exploration of new areas.
+"""
+
 import uuid
 import json
 from pathlib import Path
@@ -20,6 +27,21 @@ event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6
 museum_ticket = (0xD754, 0)
 
 class RedGymEnv(Env):
+    """Full-featured environment with richer observations.
+
+    **Observation Space**
+        ``Dict`` containing stacked grayscale screens, normalized health,
+        Fourier encoded level sum, badge indicators, raw event flag bits,
+        a cropped exploration map and a history of recent actions.
+
+    **Action Space**
+        ``Discrete`` gamepad actions including directional controls, A/B and
+        START.
+
+    **Reward Shaping**
+        Combines rewards from game events, badges, healing and exploration based
+        on visited coordinates.
+    """
     def __init__(self, config=None):
         self.s_path = config["session_path"]
         self.save_final_state = config["save_final_state"]
@@ -121,6 +143,23 @@ class RedGymEnv(Env):
             self.pyboy.set_emulation_speed(6)
 
     def reset(self, seed=None, options={}):
+        """Reset the emulator to the initial state.
+
+        Parameters
+        ----------
+        seed : int, optional
+            Random seed for reproducibility.
+        options : dict, optional
+            Additional options required by Gymnasium.
+
+        Returns
+        -------
+        observation : dict
+            Initial observation dict.
+        info : dict
+            Empty info dictionary.
+        """
+
         self.seed = seed
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
@@ -168,10 +207,24 @@ class RedGymEnv(Env):
         self.seen_coords = {}
 
     def render(self, reduce_res=True):
-        game_pixels_render = self.pyboy.screen.ndarray[:,:,0:1]  # (144, 160, 3)
+        """Render the screen from the emulator.
+
+        Parameters
+        ----------
+        reduce_res : bool, default True
+            If ``True`` downsample the screen by a factor of two.
+
+        Returns
+        -------
+        ndarray
+            Grayscale image with shape ``(72, 80, 1)`` when ``reduce_res`` is
+            ``True``.
+        """
+
+        game_pixels_render = self.pyboy.screen.ndarray[:, :, 0:1]  # (144, 160, 1)
         if reduce_res:
             game_pixels_render = (
-                downscale_local_mean(game_pixels_render, (2,2,1))
+                downscale_local_mean(game_pixels_render, (2, 2, 1))
             ).astype(np.uint8)
         return game_pixels_render
     
@@ -199,6 +252,26 @@ class RedGymEnv(Env):
         return observation
 
     def step(self, action):
+        """Apply ``action`` and return the resulting observation and reward.
+
+        Parameters
+        ----------
+        action : int
+            Index of the action to perform.
+
+        Returns
+        -------
+        observation : dict
+            Updated observation after the action.
+        reward : float
+            Reward calculated from game progress.
+        terminated : bool
+            Always ``False`` in this implementation.
+        truncated : bool
+            ``True`` when ``max_steps`` have been exceeded.
+        info : dict
+            Empty info dictionary.
+        """
 
         if self.save_video and self.step_count == 0:
             self.start_video()
