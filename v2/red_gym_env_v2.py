@@ -233,11 +233,10 @@ class RedGymEnv(Env):
         if self.step_count % 100 == 0:
             for address in range(event_flags_start, event_flags_end):
                 val = self.read_m(address)
-                for idx, bit in enumerate(f"{val:08b}"):
-                    if bit == "1":
-                        # TODO this currently seems to be broken!
-                        key = f"0x{address:X}-{idx}"
-                        if key in self.event_names.keys():
+                for bit_idx in range(8):
+                    if val & (1 << bit_idx):
+                        key = f"0x{address:04X}-{bit_idx}"
+                        if key in self.event_names:
                             self.current_event_flags_set[key] = self.event_names[key]
                         else:
                             print(f"could not find key: {key}")
@@ -465,10 +464,11 @@ class RedGymEnv(Env):
         return bin(256 + self.read_m(addr))[-bit - 1] == "1"
 
     def read_event_bits(self):
-        return [
-            int(bit) for i in range(event_flags_start, event_flags_end) 
-            for bit in f"{self.read_m(i):08b}"
-        ]
+        bits = []
+        for i in range(event_flags_start, event_flags_end):
+            val = self.read_m(i)
+            bits.extend([(val >> b) & 1 for b in range(8)])
+        return bits
 
     def get_levels_sum(self):
         min_poke_level = 2
