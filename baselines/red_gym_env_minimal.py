@@ -1,3 +1,5 @@
+"""Lightweight Gym environment for Pokemon Red using PyBoy."""
+
 import uuid
 import json
 from pathlib import Path
@@ -18,10 +20,16 @@ event_flags_end = 0xD7F6 # 0xD761 # 0xD886 temporarily lower event flag range fo
 museum_ticket = (0xD754, 0)
 
 class PokeRedEnv(Env):
+    """Simplified environment exposing only the game screen."""
     def __init__(
-            self, gb_path, init_state,
-            max_steps=2048*8, headless=True,
-            action_frequency=24, downscale_factor=2):
+            self,
+            gb_path: str,
+            init_state: str,
+            max_steps: int = 2048 * 8,
+            headless: bool = True,
+            action_frequency: int = 24,
+            downscale_factor: int = 2) -> None:
+        """Create a new minimal environment."""
         
         self.headless = headless
         self.init_state = init_state
@@ -89,7 +97,9 @@ class PokeRedEnv(Env):
         if not self.headless:
             self.pyboy.set_emulation_speed(6)
 
-    def reset(self, seed=0, options={}):
+    def reset(self, seed: int = 0, options: dict | None = None):
+        """Reset the emulator state and internal counters."""
+
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
             self.pyboy.load_state(f)
@@ -121,10 +131,13 @@ class PokeRedEnv(Env):
 
         return self._get_obs(), {}
 
-    def init_map_mem(self):
-        self.seen_coords = {}
+    def init_map_mem(self) -> None:
+        """Initialise structures used for exploration tracking."""
 
-    def render(self, reduce_res=True):
+        self.seen_coords: dict[str, int] = {}
+
+    def render(self, reduce_res: bool = True) -> np.ndarray:
+        """Return a frame from the emulator."""
         game_pixels_render = self.screen.screen_ndarray()[:,:,0]  # (144, 160)
         if reduce_res:
             game_pixels_render = (
@@ -133,7 +146,7 @@ class PokeRedEnv(Env):
             ).astype(np.uint8)
         return game_pixels_render
     
-    def _get_obs(self):
+    def _get_obs(self) -> dict:
         
         screen = self.render()
 
@@ -143,7 +156,8 @@ class PokeRedEnv(Env):
 
         return observation
 
-    def step(self, action):
+    def step(self, action: int) -> tuple[dict, float, bool, bool, dict]:
+        """Advance the emulator by one action."""
 
         self.run_action_on_emulator(action)
         self.append_agent_stats(action)
@@ -194,7 +208,8 @@ class PokeRedEnv(Env):
 
         return obs, new_rew, False, step_limit_reached, {}
     
-    def run_action_on_emulator(self, action):
+    def run_action_on_emulator(self, action: int) -> None:
+        """Send an action to the emulator and tick."""
         # press button then release after some steps
         self.pyboy.send_input(self.valid_actions[action])
         # disable rendering when we don't need it
@@ -210,7 +225,8 @@ class PokeRedEnv(Env):
                 self.pyboy._rendering(True)
             self.pyboy.tick()
 
-    def append_agent_stats(self, action):
+    def append_agent_stats(self, action: int) -> None:
+        """Store debug statistics about the current step."""
         x_pos, y_pos, map_n = self.get_game_coords()
         levels = [
             self.read_m(a) for a in [0xD18C, 0xD1B8, 0xD1E4, 0xD210, 0xD23C, 0xD268]
@@ -237,29 +253,39 @@ class PokeRedEnv(Env):
             }
         )
 
-    def get_game_coords(self):
-        return (self.read_m(0xD362), self.read_m(0xD361), self.read_m(0xD35E))
+    def get_game_coords(self) -> tuple[int, int, int]:
+        """Return current in-game coordinates."""
 
-    def update_seen_coords(self):
+        return (
+            self.read_m(0xD362),
+            self.read_m(0xD361),
+            self.read_m(0xD35E),
+        )
+
+    def update_seen_coords(self) -> None:
+        """Record that the agent visited the current tile."""
         x_pos, y_pos, map_n = self.get_game_coords()
         coord_string = f"x:{x_pos} y:{y_pos} m:{map_n}"
         self.seen_coords[coord_string] = self.step_count
 
-    def get_global_coords(self):
+    def get_global_coords(self) -> tuple[int, int]:
+        """Convert local coordinates to global map coordinates."""
         x_pos, y_pos, map_n = self.get_game_coords()
         c = (np.array([x_pos,-y_pos])
         + self.get_map_location(map_n)["coordinates"]
         + self.coords_pad*2)
         return self.explore_map.shape[0]-c[1], c[0]
 
-    def update_explore_map(self):
+    def update_explore_map(self) -> None:
+        """Mark the exploration map at the current position."""
         c = self.get_global_coords()
         if c[0] >= self.explore_map.shape[0] or c[1] >= self.explore_map.shape[1]:
             print(f"coord out of bounds! global: {c} game: {self.get_game_coords()}")
         else:
             self.explore_map[c[0], c[1]] = 255
 
-    def get_explore_map(self):
+    def get_explore_map(self) -> np.ndarray:
+        """Return a small cropped portion of the exploration map."""
         c = self.get_global_coords()
         if c[0] >= self.explore_map.shape[0] or c[1] >= self.explore_map.shape[1]:
             out = np.zeros((self.coords_pad*2, self.coords_pad*2), dtype=np.uint8)
@@ -270,25 +296,30 @@ class PokeRedEnv(Env):
             ]
         return repeat(out, 'h w -> (h h2) (w w2)', h2=2, w2=2)
     
-    def check_if_done(self):
+    def check_if_done(self) -> bool:
+        """Return True when the maximum number of steps is reached."""
         done = self.step_count >= self.max_steps - 1
         # done = self.read_hp_fraction() == 0 # end game on loss
         return done
 
-    def read_m(self, addr):
+    def read_m(self, addr: int) -> int:
+        """Return the byte at ``addr`` from emulator memory."""
         return self.pyboy.get_memory_value(addr)
 
-    def read_bit(self, addr, bit: int) -> bool:
+    def read_bit(self, addr: int, bit: int) -> bool:
+        """Return the value of the given bit from a memory address."""
         # add padding so zero will read '0b100000000' instead of '0b0'
         return bin(256 + self.read_m(addr))[-bit - 1] == "1"
 
-    def read_event_bits(self):
+    def read_event_bits(self) -> list[int]:
+        """Return the state of all configured event flags."""
         return [
             int(bit) for i in range(event_flags_start, event_flags_end) 
             for bit in f"{self.read_m(i):08b}"
         ]
 
-    def get_levels_sum(self):
+    def get_levels_sum(self) -> int:
+        """Return the combined level sum of the player's party."""
         min_poke_level = 2
         starter_additional_levels = 4
         poke_levels = [
@@ -297,16 +328,19 @@ class PokeRedEnv(Env):
         ]
         return max(sum(poke_levels) - starter_additional_levels, 0)
 
-    def get_badges(self):
+    def get_badges(self) -> int:
+        """Return the number of earned badges."""
         return self.bit_count(self.read_m(0xD356))
 
-    def read_party(self):
+    def read_party(self) -> list[int]:
+        """Return raw party data from memory."""
         return [
             self.read_m(addr)
             for addr in [0xD164, 0xD165, 0xD166, 0xD167, 0xD168, 0xD169]
         ]
 
-    def get_all_events_reward(self):
+    def get_all_events_reward(self) -> int:
+        """Return the number of all triggered event flags."""
         # adds up all event flags, exclude museum ticket
         return max(
             sum([
@@ -318,7 +352,8 @@ class PokeRedEnv(Env):
             0,
         )
 
-    def update_max_op_level(self):
+    def update_max_op_level(self) -> int:
+        """Track the highest opponent level seen."""
         opp_base_level = 5
         opponent_level = (
             max([
@@ -330,7 +365,8 @@ class PokeRedEnv(Env):
         self.max_opponent_level = max(self.max_opponent_level, opponent_level)
         return self.max_opponent_level
 
-    def update_heal_reward(self):
+    def update_heal_reward(self) -> None:
+        """Increase death count when health goes from zero to positive."""
         cur_health = self.read_hp_fraction()
         # if health increased and party size did not change
         if cur_health > self.last_health and self.read_m(0xD163) == self.party_size:
@@ -340,7 +376,8 @@ class PokeRedEnv(Env):
             else:
                 self.died_count += 1
 
-    def read_hp_fraction(self):
+    def read_hp_fraction(self) -> float:
+        """Return party HP as a fraction of max HP."""
         hp_sum = sum([
             self.read_hp(add)
             for add in [0xD16C, 0xD198, 0xD1C4, 0xD1F0, 0xD21C, 0xD248]
@@ -352,24 +389,29 @@ class PokeRedEnv(Env):
         max_hp_sum = max(max_hp_sum, 1)
         return hp_sum / max_hp_sum
 
-    def read_hp(self, start):
+    def read_hp(self, start: int) -> int:
+        """Return a two-byte HP value from memory."""
         return 256 * self.read_m(start) + self.read_m(start + 1)
 
     # built-in since python 3.10
-    def bit_count(self, bits):
+    def bit_count(self, bits: int) -> int:
+        """Return the number of set bits."""
         return bin(bits).count("1")
     
-    def update_map_progress(self):
+    def update_map_progress(self) -> None:
+        """Update highest map index reached."""
         map_idx = self.read_m(0xD35E)
         self.max_map_progress = max(self.max_map_progress, self.get_map_progress(map_idx))
     
-    def get_map_progress(self, map_idx):
+    def get_map_progress(self, map_idx: int) -> int:
+        """Return progress index for a given map identifier."""
         if map_idx in self.essential_map_locations.keys():
             return self.essential_map_locations[map_idx]
         else:
             return -1
 
-    def get_map_location(self, map_idx):
+    def get_map_location(self, map_idx: int) -> dict:
+        """Return coordinates and name for ``map_idx``."""
         map_locations = {
             0: {"name": "Pallet Town", "coordinates": np.array([70, 7])},
             1: {"name": "Viridian City", "coordinates": np.array([60, 79])},

@@ -1,3 +1,5 @@
+"""Helpers for mapping local Pokemon Red coordinates to a global grid."""
+
 # adapted from https://github.com/thatguy11325/pokemonred_puffer/blob/main/pokemonred_puffer/global_map.py
 
 import os
@@ -14,7 +16,8 @@ with open(MAP_PATH) as map_data:
 MAP_DATA = {int(e["id"]): e for e in MAP_DATA}
 
 # Handle KeyErrors
-def local_to_global(r: int, c: int, map_n: int):
+def local_to_global(r: int, c: int, map_n: int) -> tuple[int, int]:
+    """Translate local map coordinates to absolute global coordinates."""
     try:
         (
             map_x,
