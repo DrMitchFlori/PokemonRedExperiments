@@ -89,8 +89,21 @@ https://github.com/pwhiddy/pokerl-map-viz/
 The current state of each game is rendered to images in the session directory.   
 You can track the progress in tensorboard by moving into the session directory and running:  
 ```tensorboard --logdir .```  
-You can then navigate to `localhost:6006` in your browser to view metrics.  
+You can then navigate to `localhost:6006` in your browser to view metrics.
 To enable wandb integration, change `use_wandb_logging` in the training script to `True`.
+
+To programmatically access the logged values you can use TensorBoard's event
+accumulator. This lets you query the episode return histogram and other
+statistics directly from the log files:
+
+```python
+from tensorboard.backend.event_processing import event_accumulator
+
+ea = event_accumulator.EventAccumulator("runs/histogram")
+ea.Reload()
+print(ea.Scalars("episode_return/mean")[-1])
+print(ea.Histograms("env_stats_distribs/coord_count")[-1])
+```
 
 ## Static Visualization 🐜
 Map visualization code can be found in `visualization/` directory.

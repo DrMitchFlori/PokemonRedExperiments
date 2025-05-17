@@ -43,7 +43,11 @@ class TensorboardCallback(BaseCallback):
             all_infos = self.training_env.get_attr("agent_stats")
             all_final_infos = [stats[-1] for stats in all_infos]
             mean_infos, distributions = merge_dicts(all_final_infos)
-            # TODO log distributions, and total return
+
+            returns = np.array(self.training_env.get_attr("total_reward"), dtype=float)
+            self.writer.add_histogram("episode_return/distribution", returns, self.n_calls)
+            self.logger.record("episode_return/mean", float(returns.mean()))
+
             for key, val in mean_infos.items():
                 self.logger.record(f"env_stats/{key}", val)
 
@@ -70,5 +74,7 @@ class TensorboardCallback(BaseCallback):
     
     def _on_training_end(self):
         if self.writer:
+            self.writer.flush()
             self.writer.close()
+            self.writer = None
 
