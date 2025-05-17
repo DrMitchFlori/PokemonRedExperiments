@@ -2,12 +2,16 @@ from os.path import exists
 from pathlib import Path
 import sys
 import uuid
+import argparse
 from red_gym_env import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback
+
+DEFAULT_ROM = Path(__file__).resolve().parents[1] / "PokemonRed.gb"
+DEFAULT_STATE = Path(__file__).resolve().parents[1] / "has_pokedex_nballs.state"
 
 def make_env(rank, env_conf, seed=0):
     """
@@ -24,15 +28,15 @@ def make_env(rank, env_conf, seed=0):
     set_random_seed(seed)
     return _init
 
-def run_save(save):
+def run_save(save, gb_path, state_path):
     save = Path(save)
     ep_length = 2048 * 8
     sess_path = f'grid_renders/session_{save.stem}'
     env_config = {
                 'headless': True, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../has_pokedex_nballs.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': str(state_path), 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': True, 'fast_video': False, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0
+                'gb_path': str(gb_path), 'debug': False, 'sim_frame_dist': 2_000_000.0
             }
     num_cpu = 40  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
@@ -64,7 +68,14 @@ def run_save(save):
 
 
 if __name__ == '__main__':
-    run_save(sys.argv[1])
+    parser = argparse.ArgumentParser(description='Render grids from checkpoint')
+    parser.add_argument('save', help='checkpoint file')
+    parser.add_argument('--gb-path', type=Path, default=DEFAULT_ROM,
+                        help='Path to Pokemon Red ROM')
+    parser.add_argument('--state-path', type=Path, default=DEFAULT_STATE,
+                        help='Path to starting emulator state')
+    args = parser.parse_args()
+    run_save(args.save, args.gb_path, args.state_path)
     
 #    all_saves = list(Path('session_4da05e87').glob('*.zip'))
 #    selected_saves = [Path('session_4da05e87/init')] + all_saves[:10] + all_saves[10:120:5] + all_saves[120:420:10]
