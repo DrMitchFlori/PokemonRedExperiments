@@ -2,9 +2,13 @@ import os
 from os.path import exists
 from pathlib import Path
 import uuid
+import argparse
 import time
 import glob
 from red_gym_env_v2 import RedGymEnv
+
+DEFAULT_ROM = Path(__file__).resolve().parents[1] / "PokemonRed.gb"
+DEFAULT_STATE = Path(__file__).resolve().parents[1] / "init.state"
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
@@ -45,14 +49,21 @@ def get_most_recent_zip_with_age(folder_path):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description="Run pretrained v2 model interactively")
+    parser.add_argument("--gb-path", type=Path, default=DEFAULT_ROM,
+                        help="Path to Pokemon Red ROM")
+    parser.add_argument("--state-path", type=Path, default=DEFAULT_STATE,
+                        help="Path to starting emulator state")
+    args = parser.parse_args()
+
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
     ep_length = 2**23
 
     env_config = {
                 'headless': False, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': str(args.state_path), 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
+                'gb_path': str(args.gb_path), 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
             }
     
     num_cpu = 1 #64 #46  # Also sets the number of episodes per training iteration

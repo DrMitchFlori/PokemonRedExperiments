@@ -1,6 +1,7 @@
 from os.path import exists
 from pathlib import Path
 import uuid
+import argparse
 
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
@@ -12,7 +13,10 @@ from tensorboard_callback import TensorboardCallback
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
-def make_env(rank, seed=0):
+DEFAULT_ROM = Path(__file__).resolve().parents[1] / "PokemonRed.gb"
+DEFAULT_STATE = Path(__file__).resolve().parents[1] / "has_pokedex_nballs.state"
+
+def make_env(rank, gb_path, state_path, seed=0):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -22,7 +26,7 @@ def make_env(rank, seed=0):
     """
     def _init():
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
+            PokeRedEnv(gb_path, state_path),
             stream_metadata = { # All of this is part is optional
                 "user": "v3-test", # choose your own username
                 "env_id": rank, # environment identifier
@@ -35,7 +39,15 @@ def make_env(rank, seed=0):
     set_random_seed(seed)
     return _init
 
+
 if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser(description="Train minimal baseline agent")
+    parser.add_argument("--gb-path", type=Path, default=DEFAULT_ROM,
+                        help="Path to Pokemon Red ROM")
+    parser.add_argument("--state-path", type=Path, default=DEFAULT_STATE,
+                        help="Path to starting emulator state")
+    args = parser.parse_args()
 
     use_wandb_logging = False
     ep_length = 2048 * 10
@@ -44,7 +56,8 @@ if __name__ == "__main__":
 
         
     num_cpu = 24  # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    env = SubprocVecEnv([make_env(i, str(args.gb_path), str(args.state_path))
+                         for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
                                      name_prefix="poke")

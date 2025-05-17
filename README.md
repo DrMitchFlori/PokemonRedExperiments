@@ -35,18 +35,19 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
 
 1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
-2. Move into the `baselines/` directory:  
- ```cd baselines```  
-3. Install dependencies:  
+2. Move into the `baselines/` directory (optional, scripts now resolve paths relative to their location):
+ ```cd baselines```
+3. Install dependencies:
 ```pip install -r requirements.txt```  
 It may be necessary in some cases to separately install the SDL libraries.  
-4. Run:  
+4. Run:
 ```python run_pretrained_interactive.py```
+   - Use `--gb-path` or `--state-path` to override the ROM or state file location
   
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
 You can pause the AI's input during the game by editing `agent_enabled.txt`
 
-Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `baselines/` directory in order for this to work.
+Note: The ROM and state paths default to files relative to each script. You may run the scripts from any directory.
 
 ## Training the Model 🏋️ 
 
@@ -64,6 +65,7 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+   - Add `--gb-path` or `--state-path` if your files are in custom locations
 
 ## Tracking Training Progress 📈
 
