@@ -228,19 +228,9 @@ class RedGymEnv(Env):
 
         # self.save_and_print_info(step_limit_reached, obs)
 
-        # create a map of all event flags set, with names where possible
-        #if step_limit_reached:
+        # periodically update event flag cache
         if self.step_count % 100 == 0:
-            for address in range(event_flags_start, event_flags_end):
-                val = self.read_m(address)
-                for idx, bit in enumerate(f"{val:08b}"):
-                    if bit == "1":
-                        # TODO this currently seems to be broken!
-                        key = f"0x{address:X}-{idx}"
-                        if key in self.event_names.keys():
-                            self.current_event_flags_set[key] = self.event_names[key]
-                        else:
-                            print(f"could not find key: {key}")
+            self.scan_event_flags()
 
         self.step_count += 1
 
@@ -466,9 +456,24 @@ class RedGymEnv(Env):
 
     def read_event_bits(self):
         return [
-            int(bit) for i in range(event_flags_start, event_flags_end) 
+            int(bit) for i in range(event_flags_start, event_flags_end)
             for bit in f"{self.read_m(i):08b}"
         ]
+
+    def generate_event_flag_key(self, address: int, bit: int) -> str:
+        """Return standardized event flag key."""
+        return f"0x{address:X}-{bit}"
+
+    def scan_event_flags(self):
+        """Populate ``current_event_flags_set`` with active flags."""
+        self.current_event_flags_set = {}
+        for address in range(event_flags_start, event_flags_end):
+            val = self.read_m(address)
+            for bit in range(8):
+                if val & (1 << bit):
+                    key = self.generate_event_flag_key(address, bit)
+                    if key in self.event_names:
+                        self.current_event_flags_set[key] = self.event_names[key]
 
     def get_levels_sum(self):
         min_poke_level = 2
