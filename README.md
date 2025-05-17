@@ -34,8 +34,9 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 
 V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
 
-1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
-2. Move into the `baselines/` directory:  
+1. Copy your legally obtained Pokemon Red ROM into the base directory (or another directory of your choice). Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`.
+   You may also place save states such as `init.state` in this directory. The training scripts resolve these paths relative to their own location, so they can be run from any working directory.
+2. Move into the `baselines/` directory:
  ```cd baselines```  
 3. Install dependencies:  
 ```pip install -r requirements.txt```  
@@ -46,7 +47,7 @@ It may be necessary in some cases to separately install the SDL libraries.
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
 You can pause the AI's input during the game by editing `agent_enabled.txt`
 
-Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `baselines/` directory in order for this to work.
+Note: the ROM and state file locations are configurable. By default the scripts expect them in the repository root but any path can be supplied.
 
 ## Training the Model 🏋️ 
 

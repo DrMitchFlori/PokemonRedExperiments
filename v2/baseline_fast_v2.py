@@ -40,11 +40,15 @@ if __name__ == "__main__":
     sess_id = "runs"
     sess_path = Path(sess_id)
 
+    base_dir = Path(__file__).resolve().parent.parent
     env_config = {
                 'headless': True, 'save_final_state': False, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
-                'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
+                'action_freq': 24,
+                'init_state': base_dir / 'init.state', 'max_steps': ep_length,
+                'print_rewards': True, 'save_video': False, 'fast_video': True,
+                'session_path': sess_path,
+                'gb_path': base_dir / 'PokemonRed.gb',
+                'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
             }
     
     print(env_config)

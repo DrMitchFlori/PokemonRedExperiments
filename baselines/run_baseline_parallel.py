@@ -29,11 +29,13 @@ if __name__ == '__main__':
     ep_length = 2048 * 8
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
 
+    base_dir = Path(__file__).resolve().parent.parent
     env_config = {
                 'headless': True, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../has_pokedex_nballs.state', 'max_steps': ep_length, 
+                'action_freq': 24,
+                'init_state': base_dir / 'has_pokedex_nballs.state', 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 
+                'gb_path': base_dir / 'PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0,
                 'use_screen_explore': True, 'extra_buttons': False
             }
     
