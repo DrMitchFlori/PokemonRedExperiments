@@ -1,0 +1,11 @@
+pandas
+matplotlib
+seaborn
+Pillow
+einops
+requests
+tqdm
+mediapy
+numpy
+holoviews
+colorcet
