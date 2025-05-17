@@ -1,3 +1,5 @@
+"""TensorBoard callback utilities for logging game statistics."""
+
 import os
 import json
 
@@ -7,7 +9,8 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 from einops import rearrange, reduce
 
-def merge_dicts(dicts):
+def merge_dicts(dicts: list[dict]) -> tuple[dict, dict]:
+    """Combine a list of dictionaries into mean and distribution mappings."""
     sum_dict = {}
     count_dict = {}
     distrib_dict = {}
@@ -27,17 +30,30 @@ def merge_dicts(dicts):
     return mean_dict, distrib_dict
 
 class TensorboardCallback(BaseCallback):
+    """Callback that logs custom statistics to TensorBoard."""
 
-    def __init__(self, log_dir, verbose=0):
+    def __init__(self, log_dir: str, verbose: int = 0) -> None:
+        """Create the callback.
+
+        Parameters
+        ----------
+        log_dir:
+            Directory where TensorBoard logs will be written.
+        verbose:
+            Verbosity level passed to :class:`BaseCallback`.
+        """
+
         super().__init__(verbose)
         self.log_dir = log_dir
         self.writer = None
 
-    def _on_training_start(self):
+    def _on_training_start(self) -> None:
+        """Initialise the :class:`SummaryWriter` on first use."""
         if self.writer is None:
             self.writer = SummaryWriter(log_dir=os.path.join(self.log_dir, 'histogram'))
 
     def _on_step(self) -> bool:
+        """Log statistics from parallel environments at each step."""
         
         if self.training_env.env_method("check_if_done", indices=[0])[0]:
             all_infos = self.training_env.get_attr("agent_stats")
@@ -68,7 +84,9 @@ class TensorboardCallback(BaseCallback):
 
         return True
     
-    def _on_training_end(self):
+    def _on_training_end(self) -> None:
+        """Close the writer when training finishes."""
+
         if self.writer:
             self.writer.close()
 

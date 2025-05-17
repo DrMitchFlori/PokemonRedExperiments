@@ -106,3 +106,12 @@ Check out these awesome projects!
 <a href="https://github.com/DLR-RM/stable-baselines3">
   <img src="/assets/sblogo.png" height="64">
 </a>
+
+## Running Tests
+
+Install development requirements and execute the test suite with `pytest`:
+
+```bash
+pip install -r v2/requirements.txt
+pytest
+```

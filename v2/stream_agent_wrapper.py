@@ -1,3 +1,5 @@
+"""Wrapper that streams environment state over websockets."""
+
 import asyncio
 import websockets
 import json
@@ -8,7 +10,11 @@ X_POS_ADDRESS, Y_POS_ADDRESS = 0xD362, 0xD361
 MAP_N_ADDRESS = 0xD35E
 
 class StreamWrapper(gym.Wrapper):
-    def __init__(self, env, stream_metadata={}):
+    """Gym wrapper that periodically broadcasts agent coordinates."""
+
+    def __init__(self, env: gym.Env, stream_metadata: dict | None = None) -> None:
+        """Initialize the wrapper and connect to the websocket server."""
+
         super().__init__(env)
         self.ws_address = "wss://transdimensional.xyz/broadcast"
         self.stream_metadata = stream_metadata
@@ -29,7 +35,8 @@ class StreamWrapper(gym.Wrapper):
         else:
             raise Exception("Could not find emulator!")
 
-    def step(self, action):
+    def step(self, action: int):
+        """Record coordinates and forward the action to the wrapped env."""
 
         x_pos = self.emulator.memory[X_POS_ADDRESS]
         y_pos = self.emulator.memory[Y_POS_ADDRESS]
@@ -55,7 +62,8 @@ class StreamWrapper(gym.Wrapper):
 
         return self.env.step(action)
 
-    async def broadcast_ws_message(self, message):
+    async def broadcast_ws_message(self, message: str) -> None:
+        """Send a websocket message if a connection is available."""
         if self.websocket is None:
             await self.establish_wc_connection()
         if self.websocket is not None:
@@ -64,7 +72,8 @@ class StreamWrapper(gym.Wrapper):
             except websockets.exceptions.WebSocketException as e:
                 self.websocket = None
 
-    async def establish_wc_connection(self):
+    async def establish_wc_connection(self) -> None:
+        """Establish the websocket connection used for broadcasting."""
         try:
             self.websocket = await websockets.connect(self.ws_address)
         except:
