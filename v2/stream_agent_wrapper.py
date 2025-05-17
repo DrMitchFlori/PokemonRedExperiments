@@ -19,7 +19,7 @@ class StreamWrapper(gym.Wrapper):
             self.establish_wc_connection()
         )
         self.upload_interval = 300
-        self.steam_step_counter = 0
+        self.stream_step_counter = 0
         self.env = env
         self.coord_list = []
         if hasattr(env, "pyboy"):
@@ -36,7 +36,7 @@ class StreamWrapper(gym.Wrapper):
         map_n = self.emulator.memory[MAP_N_ADDRESS]
         self.coord_list.append([x_pos, y_pos, map_n])
 
-        if self.steam_step_counter >= self.upload_interval:
+        if self.stream_step_counter >= self.upload_interval:
             self.stream_metadata["extra"] = f"coords: {len(self.env.seen_coords)}"
             self.loop.run_until_complete(
                 self.broadcast_ws_message(
@@ -48,10 +48,10 @@ class StreamWrapper(gym.Wrapper):
                     )
                 )
             )
-            self.steam_step_counter = 0
+            self.stream_step_counter = 0
             self.coord_list = []
 
-        self.steam_step_counter += 1
+        self.stream_step_counter += 1
 
         return self.env.step(action)
 
@@ -67,5 +67,5 @@ class StreamWrapper(gym.Wrapper):
     async def establish_wc_connection(self):
         try:
             self.websocket = await websockets.connect(self.ws_address)
-        except:
+        except websockets.exceptions.WebSocketException:
             self.websocket = None
