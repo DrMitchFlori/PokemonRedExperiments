@@ -71,7 +71,7 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py) on your environment like this:
 ```python
 env = StreamWrapper(
-            env, 
+            env,
             stream_metadata = { # All of this is part is optional
                 "user": "super-cool-user", # choose your own username
                 "env_id": id, # environment identifier
@@ -80,6 +80,8 @@ env = StreamWrapper(
             }
         )
 ```
+
+The wrapper streams coordinates asynchronously using a background task. Data is queued and uploaded periodically so environment steps remain non-blocking.
 
 Hack on the broadcast viewing client or set up your own local stream with this repo:  
   
