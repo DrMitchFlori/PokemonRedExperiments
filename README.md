@@ -95,6 +95,14 @@ To enable wandb integration, change `use_wandb_logging` in the training script t
 ## Static Visualization 🐜
 Map visualization code can be found in `visualization/` directory.
 
+## Running Tests
+Tests use [pytest](https://pytest.org). After installing the dependencies you can
+run all tests with:
+
+```bash
+pytest
+```
+
 ## Supporting Libraries
 Check out these awesome projects!
 ### [PyBoy](https://github.com/Baekalfen/PyBoy)
