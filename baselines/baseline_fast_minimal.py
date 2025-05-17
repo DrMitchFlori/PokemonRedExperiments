@@ -12,6 +12,7 @@ from tensorboard_callback import TensorboardCallback
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
+
 def make_env(rank, seed=0):
     """
     Utility function for multiprocessed env.
@@ -20,59 +21,63 @@ def make_env(rank, seed=0):
     :param seed: (int) the initial seed for RNG
     :param rank: (int) index of the subprocess
     """
+
     def _init():
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
-            stream_metadata = { # All of this is part is optional
-                "user": "v3-test", # choose your own username
-                "env_id": rank, # environment identifier
-                "color": "#662299", # choose your color :)
-                "extra": "", # any extra text you put here will be displayed
-            }
+            PokeRedEnv("../PokemonRed.gb", "../has_pokedex_nballs.state"),
+            stream_metadata={  # All of this is part is optional
+                "user": "v3-test",  # choose your own username
+                "env_id": rank,  # environment identifier
+                "color": "#662299",  # choose your color :)
+                "extra": "",  # any extra text you put here will be displayed
+            },
         )
         env.reset(seed=(seed + rank))
         return env
+
     set_random_seed(seed)
     return _init
+
 
 if __name__ == "__main__":
 
     use_wandb_logging = False
     ep_length = 2048 * 10
     sess_id = str(uuid.uuid4())[:8]
-    sess_path = Path(f'session_{sess_id}')
+    sess_path = Path(f"session_{sess_id}")
 
-        
     num_cpu = 24  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
-    
-    checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
-                                     name_prefix="poke")
-    
+
+    checkpoint_callback = CheckpointCallback(
+        save_freq=ep_length, save_path=sess_path, name_prefix="poke"
+    )
+
     callbacks = [checkpoint_callback, TensorboardCallback(sess_path)]
 
     if use_wandb_logging:
         import wandb
         from wandb.integration.sb3 import WandbCallback
+
         wandb.tensorboard.patch(root_logdir=str(sess_path))
         run = wandb.init(
             project="pokemon-train",
             id=sess_id,
             name="less-event-log-text-test-logs-stack3-all-obs",
-            #config=env_config,
-            sync_tensorboard=True,  
-            monitor_gym=True,  
+            # config=env_config,
+            sync_tensorboard=True,
+            monitor_gym=True,
             save_code=True,
         )
         callbacks.append(WandbCallback())
 
-    #env_checker.check_env(env)
+    # env_checker.check_env(env)
 
     # put a checkpoint here you want to start from
-    file_name = "" #"session_9ff8e5f0/poke_21626880_steps"
+    file_name = ""  # "session_9ff8e5f0/poke_21626880_steps"
 
     train_steps_batch = ep_length // 10
-    
+
     if exists(file_name + ".zip"):
         print("\nloading checkpoint")
         model = PPO.load(file_name, env=env)
@@ -82,11 +87,24 @@ if __name__ == "__main__":
         model.rollout_buffer.n_envs = num_cpu
         model.rollout_buffer.reset()
     else:
-        model = PPO("MultiInputPolicy", env, verbose=1, n_steps=train_steps_batch, batch_size=128, n_epochs=1, gamma=0.998, tensorboard_log=sess_path)
-    
+        model = PPO(
+            "MultiInputPolicy",
+            env,
+            verbose=1,
+            n_steps=train_steps_batch,
+            batch_size=128,
+            n_epochs=1,
+            gamma=0.998,
+            tensorboard_log=sess_path,
+        )
+
     print(model.policy)
 
-    model.learn(total_timesteps=(ep_length)*num_cpu*10000, callback=CallbackList(callbacks), tb_log_name="poke_ppo")
+    model.learn(
+        total_timesteps=(ep_length) * num_cpu * 10000,
+        callback=CallbackList(callbacks),
+        tb_log_name="poke_ppo",
+    )
 
     if use_wandb_logging:
         run.finish()

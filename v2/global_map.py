@@ -13,13 +13,16 @@ with open(MAP_PATH) as map_data:
     MAP_DATA = json.load(map_data)["regions"]
 MAP_DATA = {int(e["id"]): e for e in MAP_DATA}
 
+
 # Handle KeyErrors
 def local_to_global(r: int, c: int, map_n: int):
     try:
         (
             map_x,
             map_y,
-        ) = MAP_DATA[map_n]["coordinates"]
+        ) = MAP_DATA[
+            map_n
+        ]["coordinates"]
         gy = r + map_y + MAP_ROW_OFFSET
         gx = c + map_x + MAP_COL_OFFSET
         if 0 <= gy < GLOBAL_MAP_SHAPE[0] and 0 <= gx < GLOBAL_MAP_SHAPE[1]:
