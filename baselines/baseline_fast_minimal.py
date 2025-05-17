@@ -11,8 +11,9 @@ from tensorboard_callback import TensorboardCallback
 
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
+import argparse
 
-def make_env(rank, seed=0):
+def make_env(rank, gb_path, state_path, seed=0):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -22,7 +23,7 @@ def make_env(rank, seed=0):
     """
     def _init():
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
+            PokeRedEnv(gb_path, state_path),
             stream_metadata = { # All of this is part is optional
                 "user": "v3-test", # choose your own username
                 "env_id": rank, # environment identifier
@@ -37,14 +38,31 @@ def make_env(rank, seed=0):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Minimal fast baseline trainer")
+    parser.add_argument("--gb-path", default="../PokemonRed.gb",
+                        help="Path to PokemonRed.gb ROM")
+    parser.add_argument("--state-path", default="../has_pokedex_nballs.state",
+                        help="Initial emulator state file")
+    parser.add_argument("--session-dir", default=None,
+                        help="Directory for session logs (defaults to random id)")
+    parser.add_argument("--num-cpu", type=int, default=24,
+                        help="Number of parallel environments")
+    parser.add_argument("--ep-length", type=int, default=2048 * 10,
+                        help="Episode length used for training")
+    args = parser.parse_args()
+
     use_wandb_logging = False
-    ep_length = 2048 * 10
-    sess_id = str(uuid.uuid4())[:8]
-    sess_path = Path(f'session_{sess_id}')
+    ep_length = args.ep_length
+    if args.session_dir:
+        sess_path = Path(args.session_dir)
+        sess_id = sess_path.name
+    else:
+        sess_id = f"session_{str(uuid.uuid4())[:8]}"
+        sess_path = Path(sess_id)
 
         
-    num_cpu = 24  # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    num_cpu = args.num_cpu  # Also sets the number of episodes per training iteration
+    env = SubprocVecEnv([make_env(i, args.gb_path, args.state_path) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
                                      name_prefix="poke")

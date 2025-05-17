@@ -1,5 +1,6 @@
 from os.path import exists
 from pathlib import Path
+import argparse
 import uuid
 from red_gym_env import RedGymEnv
 from stable_baselines3 import PPO
@@ -26,23 +27,51 @@ def make_env(rank, env_conf, seed=0):
 
 if __name__ == '__main__':
 
+    parser = argparse.ArgumentParser(description="Fast parallel baseline trainer")
+    parser.add_argument("--gb-path", default="../PokemonRed.gb",
+                        help="Path to PokemonRed.gb ROM")
+    parser.add_argument("--init-state", default="../has_pokedex_nballs.state",
+                        help="Initial emulator state file")
+    parser.add_argument("--session-dir", default=None,
+                        help="Directory for session logs (defaults to random id)")
+    parser.add_argument("--num-cpu", type=int, default=16,
+                        help="Number of parallel environments")
+    parser.add_argument("--ep-length", type=int, default=2048 * 10,
+                        help="Episode length used for training")
+    args = parser.parse_args()
+
     use_wandb_logging = False
-    ep_length = 2048 * 10
-    sess_id = str(uuid.uuid4())[:8]
-    sess_path = Path(f'session_{sess_id}')
+    ep_length = args.ep_length
+    if args.session_dir:
+        sess_path = Path(args.session_dir)
+        sess_id = sess_path.name
+    else:
+        sess_id = str(uuid.uuid4())[:8]
+        sess_path = Path(f'session_{sess_id}')
 
     env_config = {
-                'headless': True, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../has_pokedex_nballs.state', 'max_steps': ep_length, 
-                'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 
-                'use_screen_explore': True, 'reward_scale': 4, 'extra_buttons': False,
-                'explore_weight': 3 # 2.5
+                'headless': True,
+                'save_final_state': True,
+                'early_stop': False,
+                'action_freq': 24,
+                'init_state': args.init_state,
+                'max_steps': ep_length,
+                'print_rewards': True,
+                'save_video': False,
+                'fast_video': True,
+                'session_path': sess_path,
+                'gb_path': args.gb_path,
+                'debug': False,
+                'sim_frame_dist': 2_000_000.0,
+                'use_screen_explore': True,
+                'reward_scale': 4,
+                'extra_buttons': False,
+                'explore_weight': 3
             }
     
     print(env_config)
     
-    num_cpu = 16  # Also sets the number of episodes per training iteration
+    num_cpu = args.num_cpu  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
