@@ -72,9 +72,9 @@ Windows 10
 
 7.) Open cmd 
  
-7.1) Move into the 'baselines' directory of the repository, depending where you've downloaded it, something like this: 
+7.1) Move into the `v3` directory of the repository, depending where you've downloaded it, something like this: 
   
-```cd "C:\Users\YourWindowsUsername\Downloads\PokemonRedExperiments\baselines"```
+```cd "C:\Users\YourWindowsUsername\Downloads\PokemonRedExperiments\v3"```
  
 7.2) Type "pip install -r requirements.txt"
  

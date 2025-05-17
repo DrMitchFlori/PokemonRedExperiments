@@ -1,6 +1,6 @@
 # Train RL agents to play Pokemon Red
 
-### New 10-19-24! Updated & Simplified V2 Training Script - See V2 below
+### New 10-19-24! Updated & Simplified V2 Training Script - See V3 below
 ### New 1-29-24! - [Multiplayer Live Training Broadcast](https://github.com/pwhiddy/pokerl-map-viz/)  🎦 🔴 [View Here](https://pwhiddy.github.io/pokerl-map-viz/)
 Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)  
 
@@ -32,7 +32,7 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 
 ### Linux / MacOS
 
-V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
+V3 is now recommended over previous versions, including V2. You may follow all steps below but replace `baselines` with `v3`.
 
 1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
 2. Move into the `baselines/` directory:  
@@ -64,6 +64,19 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+
+### V3
+
+- Further reduces training time
+- Improved reward shaping and stability
+- Simplified setup compared to V2
+
+Building on V2's improvements, V3 updates hyperparameters and environment
+management for smoother learning.
+
+1. Previous steps but in the `v3` directory instead of `v2`
+2. Run:
+```python baseline_fast_v3.py```
 
 ## Tracking Training Progress 📈
 
