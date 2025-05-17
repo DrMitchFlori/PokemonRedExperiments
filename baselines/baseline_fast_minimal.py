@@ -9,7 +9,11 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 from tensorboard_callback import TensorboardCallback
 
-from red_gym_env_v3_minimal import PokeRedEnv
+# The minimal gym environment was previously imported from
+# ``red_gym_env_v3_minimal``. The repository only provides
+# ``red_gym_env_minimal`` so we import ``PokeRedEnv`` from there
+# to avoid runtime ``ModuleNotFoundError``.
+from red_gym_env_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
 def make_env(rank, seed=0):
