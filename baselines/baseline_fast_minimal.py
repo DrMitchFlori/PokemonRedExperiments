@@ -7,10 +7,10 @@ from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
-from tensorboard_callback import TensorboardCallback
+from common.tensorboard_callback import TensorboardCallback
 
 from red_gym_env_v3_minimal import PokeRedEnv
-from stream_agent_wrapper import StreamWrapper
+from common.stream_agent_wrapper import StreamWrapper
 
 def make_env(rank, seed=0):
     """
