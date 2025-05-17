@@ -1,3 +1,9 @@
+"""Minimal Gymnasium environment for Pokémon Red.
+
+This version exposes a reduced observation consisting only of the grayscale
+screen and provides simple rewards based on party levels and map exploration.
+"""
+
 import uuid
 import json
 from pathlib import Path
@@ -18,6 +24,20 @@ event_flags_end = 0xD7F6 # 0xD761 # 0xD886 temporarily lower event flag range fo
 museum_ticket = (0xD754, 0)
 
 class PokeRedEnv(Env):
+    """Simplified environment for quick experimentation.
+
+    **Observation Space**
+        ``Dict`` containing a single ``screen`` key with a grayscale image
+        from the Game Boy screen.
+
+    **Action Space**
+        ``Discrete`` actions mapped to the D-pad, A/B and START buttons.
+
+    **Reward Shaping**
+        Rewards are granted for exploring new map coordinates and increasing the
+        cumulative level of the player's Pokémon party.
+    """
+
     def __init__(
             self, gb_path, init_state,
             max_steps=2048*8, headless=True,
@@ -90,6 +110,23 @@ class PokeRedEnv(Env):
             self.pyboy.set_emulation_speed(6)
 
     def reset(self, seed=0, options={}):
+        """Reset the emulator state.
+
+        Parameters
+        ----------
+        seed : int, optional
+            Unused random seed.
+        options : dict, optional
+            Additional options required by Gymnasium.
+
+        Returns
+        -------
+        observation : dict
+            Initial observation returned by :meth:`_get_obs`.
+        info : dict
+            Empty info dictionary.
+        """
+
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
             self.pyboy.load_state(f)
@@ -125,11 +162,26 @@ class PokeRedEnv(Env):
         self.seen_coords = {}
 
     def render(self, reduce_res=True):
-        game_pixels_render = self.screen.screen_ndarray()[:,:,0]  # (144, 160)
+        """Return the current screen image.
+
+        Parameters
+        ----------
+        reduce_res : bool, default True
+            Downscale the screen using :func:`downscale_local_mean`.
+
+        Returns
+        -------
+        ndarray
+            Grayscale screen image.
+        """
+
+        game_pixels_render = self.screen.screen_ndarray()[:, :, 0]  # (144, 160)
         if reduce_res:
             game_pixels_render = (
                 downscale_local_mean(
-                    game_pixels_render, (self.downscale_factor,self.downscale_factor))
+                    game_pixels_render,
+                    (self.downscale_factor, self.downscale_factor),
+                )
             ).astype(np.uint8)
         return game_pixels_render
     
@@ -144,6 +196,26 @@ class PokeRedEnv(Env):
         return observation
 
     def step(self, action):
+        """Perform ``action`` and return the resulting transition.
+
+        Parameters
+        ----------
+        action : int
+            Index of the controller input to perform.
+
+        Returns
+        -------
+        observation : dict
+            Observation after the action.
+        reward : float
+            Reward from map exploration and leveling.
+        terminated : bool
+            Always ``False`` in this environment.
+        truncated : bool
+            ``True`` when the episode should end due to reaching ``max_steps``.
+        info : dict
+            Empty dictionary.
+        """
 
         self.run_action_on_emulator(action)
         self.append_agent_stats(action)

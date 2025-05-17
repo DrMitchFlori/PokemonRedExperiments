@@ -1,3 +1,12 @@
+"""Gymnasium environment for playing Pokémon Red via PyBoy.
+
+This module defines :class:`RedGymEnv`, an environment used for training
+reinforcement learning agents on Pokémon Red. Observations consist of a
+downsampled RGB screen stacked with recent frames and short term memory that
+encodes exploration progress. Rewards are shaped based on game events, party
+levels, healing and exploration using either a screen based k‑NN index or
+coordinate tracking.
+"""
 
 import sys
 import uuid 
@@ -20,7 +29,24 @@ from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 from memory_addresses import *
 
+
 class RedGymEnv(Env):
+    """Environment wrapping Pokémon Red for reinforcement learning.
+
+    **Observation Space**
+        ``Box(low=0, high=255, shape=(h, w, 3))`` image containing stacked
+        recent frames with auxiliary memory channels that encode exploration
+        rewards.
+
+    **Action Space**
+        ``Discrete`` with actions corresponding to the Game Boy's D-pad and
+        A/B buttons. Optionally includes START when ``extra_buttons`` is set.
+
+    **Reward Shaping**
+        Rewards are derived from in-game events, party levels, healing events
+        and exploration progress measured by a k‑NN index of observed screens or
+        by tracking visited coordinates.
+    """
 
 
     def __init__(
@@ -116,6 +142,23 @@ class RedGymEnv(Env):
         self.reset()
 
     def reset(self, seed=None, options=None):
+        """Reset the game state.
+
+        Parameters
+        ----------
+        seed : int, optional
+            Seed for reproducibility. Currently unused.
+        options : dict, optional
+            Unused options dictionary required by Gymnasium.
+
+        Returns
+        -------
+        observation : ndarray
+            Initial observation array returned by :meth:`render`.
+        info : dict
+            Additional information (empty).
+        """
+
         self.seed = seed
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
@@ -171,6 +214,23 @@ class RedGymEnv(Env):
         self.seen_coords = {}
 
     def render(self, reduce_res=True, add_memory=True, update_mem=True):
+        """Render the current game screen.
+
+        Parameters
+        ----------
+        reduce_res : bool, default True
+            When ``True`` downsample the Game Boy screen to ``output_shape``.
+        add_memory : bool, default True
+            Include exploration and recent frame memory in the returned image.
+        update_mem : bool, default True
+            Update stored frame stacks with the rendered frame.
+
+        Returns
+        -------
+        ndarray
+            RGB image representing the observation for the agent.
+        """
+
         game_pixels_render = self.screen.screen_ndarray() # (144, 160, 3)
         if reduce_res:
             game_pixels_render = (255*resize(game_pixels_render, self.output_shape)).astype(np.uint8)
@@ -192,6 +252,26 @@ class RedGymEnv(Env):
         return game_pixels_render
     
     def step(self, action):
+        """Advance the emulator by one action.
+
+        Parameters
+        ----------
+        action : int
+            Index of the action to perform as defined by ``valid_actions``.
+
+        Returns
+        -------
+        observation : ndarray
+            Observation after performing the action.
+        reward : float
+            Reward for this step scaled by ``0.1``.
+        terminated : bool
+            Always ``False`` as episodes end via ``truncated``.
+        truncated : bool
+            ``True`` when ``max_steps`` or early stopping criteria are reached.
+        info : dict
+            Additional information (empty).
+        """
 
         self.run_action_on_emulator(action)
         self.append_agent_stats(action)
