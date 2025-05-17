@@ -1,6 +1,7 @@
 from os.path import exists
 from pathlib import Path
 import uuid
+import argparse
 
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
@@ -12,7 +13,14 @@ from tensorboard_callback import TensorboardCallback
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
-def make_env(rank, seed=0):
+
+def find_project_root() -> Path:
+    path = Path(__file__).resolve()
+    while not (path / "README.md").exists() and path.parent != path:
+        path = path.parent
+    return path
+
+def make_env(rank, rom_path: Path, state_path: Path, seed: int = 0):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -22,7 +30,7 @@ def make_env(rank, seed=0):
     """
     def _init():
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
+            PokeRedEnv(str(rom_path), str(state_path)),
             stream_metadata = { # All of this is part is optional
                 "user": "v3-test", # choose your own username
                 "env_id": rank, # environment identifier
@@ -37,6 +45,15 @@ def make_env(rank, seed=0):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="Minimal baseline trainer")
+    project_root = find_project_root()
+    parser.add_argument("--rom", type=Path, default=project_root / "PokemonRed.gb",
+                        help="Path to Pokemon Red ROM")
+    parser.add_argument("--init-state", type=Path,
+                        default=project_root / "has_pokedex_nballs.state",
+                        help="Path to initial state file")
+    args = parser.parse_args()
+
     use_wandb_logging = False
     ep_length = 2048 * 10
     sess_id = str(uuid.uuid4())[:8]
@@ -44,7 +61,7 @@ if __name__ == "__main__":
 
         
     num_cpu = 24  # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    env = SubprocVecEnv([make_env(i, args.rom, args.init_state) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
                                      name_prefix="poke")

@@ -1,8 +1,16 @@
 import sys
 from os.path import exists
 from pathlib import Path
+import argparse
 from red_gym_env_v2 import RedGymEnv
 from stream_agent_wrapper import StreamWrapper
+
+
+def find_project_root() -> Path:
+    path = Path(__file__).resolve()
+    while not (path / "README.md").exists() and path.parent != path:
+        path = path.parent
+    return path
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -35,6 +43,15 @@ def make_env(rank, env_conf, seed=0):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser(description="V2 baseline trainer")
+    project_root = find_project_root()
+    parser.add_argument('--rom', type=Path, default=project_root / 'PokemonRed.gb',
+                        help='Path to Pokemon Red ROM')
+    parser.add_argument('--init-state', type=Path,
+                        default=project_root / 'init.state',
+                        help='Path to initial state file')
+    args = parser.parse_args()
+
     use_wandb_logging = False
     ep_length = 2048 * 80
     sess_id = "runs"
@@ -42,9 +59,9 @@ if __name__ == "__main__":
 
     env_config = {
                 'headless': True, 'save_final_state': False, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': str(args.init_state), 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
+                'gb_path': str(args.rom), 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
             }
     
     print(env_config)

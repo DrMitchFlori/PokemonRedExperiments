@@ -1,17 +1,34 @@
 import uuid
 from pathlib import Path
 import ray
+import argparse
 from ray.rllib.algorithms import ppo
 from red_gym_env_ray import RedGymEnv
 
-ep_length = 2048 # 2048 * 8
+
+def find_project_root() -> Path:
+    path = Path(__file__).resolve()
+    while not (path / "README.md").exists() and path.parent != path:
+        path = path.parent
+    return path
+
+parser = argparse.ArgumentParser(description="Train using Ray RLlib")
+project_root = find_project_root()
+parser.add_argument('--rom', type=Path, default=project_root / 'PokemonRed.gb',
+                    help='Path to Pokemon Red ROM')
+parser.add_argument('--init-state', type=Path,
+                    default=project_root / 'has_pokedex_nballs.state',
+                    help='Path to initial state file')
+args = parser.parse_args()
+
+ep_length = 2048  # 2048 * 8
 sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
 
 env_config = {
             'headless': True, 'save_final_state': True, 'early_stop': False,
-            'action_freq': 24, 'init_state': '../../has_pokedex_nballs.state', 'max_steps': ep_length, 
+            'action_freq': 24, 'init_state': str(args.init_state), 'max_steps': ep_length,
             'print_rewards': False, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-            'gb_path': '../../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 500_000.0
+            'gb_path': str(args.rom), 'debug': False, 'sim_frame_dist': 500_000.0
         }
 
 ray.init(num_gpus=1)
