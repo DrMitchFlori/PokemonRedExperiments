@@ -40,13 +40,15 @@ V2 is now recommended over the original version. You may follow all steps below 
 3. Install dependencies:  
 ```pip install -r requirements.txt```  
 It may be necessary in some cases to separately install the SDL libraries.  
-4. Run:  
+4. Run:
 ```python run_pretrained_interactive.py```
+You can override the ROM or state paths with `--rom` and `--init-state` if needed.
   
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
 You can pause the AI's input during the game by editing `agent_enabled.txt`
 
-Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `baselines/` directory in order for this to work.
+The scripts default to loading `PokemonRed.gb` and the initial state from the project root.
+Specify alternative locations with the `--rom` and `--init-state` options if desired.
 
 ## Training the Model 🏋️ 
 
@@ -64,6 +66,7 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+Use `--rom` and `--init-state` to point to different files if they are not in the project root.
 
 ## Tracking Training Progress 📈
 

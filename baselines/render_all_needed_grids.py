@@ -2,7 +2,15 @@ from os.path import exists
 from pathlib import Path
 import sys
 import uuid
+import argparse
 from red_gym_env import RedGymEnv
+
+
+def find_project_root() -> Path:
+    path = Path(__file__).resolve()
+    while not (path / "README.md").exists() and path.parent != path:
+        path = path.parent
+    return path
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
@@ -24,15 +32,15 @@ def make_env(rank, env_conf, seed=0):
     set_random_seed(seed)
     return _init
 
-def run_save(save):
+def run_save(save, rom_path: Path, state_path: Path):
     save = Path(save)
     ep_length = 2048 * 8
     sess_path = f'grid_renders/session_{save.stem}'
     env_config = {
                 'headless': True, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../has_pokedex_nballs.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': str(state_path), 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': True, 'fast_video': False, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0
+                'gb_path': str(rom_path), 'debug': False, 'sim_frame_dist': 2_000_000.0
             }
     num_cpu = 40  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
@@ -64,7 +72,16 @@ def run_save(save):
 
 
 if __name__ == '__main__':
-    run_save(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Render grids for saved checkpoints")
+    parser.add_argument('checkpoint', help='Path to checkpoint to resume from')
+    project_root = find_project_root()
+    parser.add_argument('--rom', type=Path, default=project_root / 'PokemonRed.gb',
+                        help='Path to Pokemon Red ROM')
+    parser.add_argument('--init-state', type=Path,
+                        default=project_root / 'has_pokedex_nballs.state',
+                        help='Path to initial state file')
+    args = parser.parse_args()
+    run_save(args.checkpoint, args.rom, args.init_state)
     
 #    all_saves = list(Path('session_4da05e87').glob('*.zip'))
 #    selected_saves = [Path('session_4da05e87/init')] + all_saves[:10] + all_saves[10:120:5] + all_saves[120:420:10]
