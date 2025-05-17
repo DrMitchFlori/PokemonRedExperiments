@@ -64,6 +64,10 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+You can override default paths with command line options:
+```bash
+python baseline_fast_v2.py --gb-path /path/PokemonRed.gb --init-state /path/init.state --session-dir my_runs
+```
 
 ## Tracking Training Progress 📈
 
