@@ -63,7 +63,7 @@ Note: the Pokemon.gb file MUST be in the main directory and your current directo
 Replaces the frame KNN with a coordinate based exploration reward, as well as some other tweaks.
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
-```python baseline_fast_v2.py```
+```python baseline_fast_v2.py --num-cpu 8```
 
 ## Tracking Training Progress 📈
 
