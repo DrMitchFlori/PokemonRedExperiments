@@ -1,8 +1,9 @@
 import sys
 from os.path import exists
 from pathlib import Path
+import argparse
 from red_gym_env_v2 import RedGymEnv
-from stream_agent_wrapper import StreamWrapper
+from common.stream_agent_wrapper import StreamWrapper
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -35,6 +36,11 @@ def make_env(rank, env_conf, seed=0):
 
 if __name__ == "__main__":
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--rom-path", default="../PokemonRed.gb", help="Path to Pokemon Red ROM")
+    parser.add_argument("--state-path", default="../init.state", help="Initial emulator state")
+    args = parser.parse_args()
+
     use_wandb_logging = False
     ep_length = 2048 * 80
     sess_id = "runs"
@@ -42,9 +48,9 @@ if __name__ == "__main__":
 
     env_config = {
                 'headless': True, 'save_final_state': False, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': args.state_path, 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
+                'gb_path': args.rom_path, 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
             }
     
     print(env_config)
