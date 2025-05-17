@@ -22,7 +22,7 @@ import gymnasium as gym
 from gymnasium import spaces
 
 from pyboy.utils import WindowEvent
-from memory_addresses import *
+from poke_memory import *
 
 class RedGymEnv(gym.Env):
 
@@ -432,7 +432,7 @@ class RedGymEnv(gym.Env):
         # addresses from https://datacrystal.romhacking.net/wiki/Pok%C3%A9mon_Red/Blue:RAM_map
         # https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm
         '''
-        num_poke = self.read_m(0xD163)
+        num_poke = self.read_m(PARTY_SIZE_ADDRESS)
         poke_xps = [self.read_triple(a) for a in [0xD179, 0xD1A5, 0xD1D1, 0xD1FD, 0xD229, 0xD255]]
         #money = self.read_money() - 975 # subtract starting money
         seen_poke_count = sum([self.bit_count(self.read_m(i)) for i in range(0xD30A, 0xD31D)])

@@ -13,9 +13,13 @@ from einops import repeat
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 
-event_flags_start = 0xD747
-event_flags_end = 0xD7F6 # 0xD761 # 0xD886 temporarily lower event flag range for obs input
-museum_ticket = (0xD754, 0)
+from poke_memory import (
+    EVENT_FLAGS_START_ADDRESS as event_flags_start,
+    EVENT_FLAGS_END_ADDRESS as event_flags_end,
+    MUSEUM_TICKET_ADDRESS,
+    PARTY_SIZE_ADDRESS,
+)
+museum_ticket = (MUSEUM_TICKET_ADDRESS, 0)
 
 class PokeRedEnv(Env):
     def __init__(
@@ -153,7 +157,7 @@ class PokeRedEnv(Env):
 
         self.update_explore_map()
 
-        self.party_size = self.read_m(0xD163)
+        self.party_size = self.read_m(PARTY_SIZE_ADDRESS)
 
         self.last_health = self.read_hp_fraction()
 
@@ -224,7 +228,7 @@ class PokeRedEnv(Env):
                 "map_location": self.get_map_location(map_n),
                 "max_map_progress": self.max_map_progress,
                 "last_action": action,
-                "pcount": self.read_m(0xD163),
+                "pcount": self.read_m(PARTY_SIZE_ADDRESS),
                 "levels": levels,
                 "levels_sum": sum(levels),
                 "ptypes": self.read_party(),
@@ -333,7 +337,7 @@ class PokeRedEnv(Env):
     def update_heal_reward(self):
         cur_health = self.read_hp_fraction()
         # if health increased and party size did not change
-        if cur_health > self.last_health and self.read_m(0xD163) == self.party_size:
+        if cur_health > self.last_health and self.read_m(PARTY_SIZE_ADDRESS) == self.party_size:
             if self.last_health > 0:
                 # healed
                 pass

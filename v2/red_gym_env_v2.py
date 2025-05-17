@@ -15,9 +15,13 @@ from pyboy.utils import WindowEvent
 
 from global_map import local_to_global, GLOBAL_MAP_SHAPE
 
-event_flags_start = 0xD747
-event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6 
-museum_ticket = (0xD754, 0)
+from poke_memory import (
+    EVENT_FLAGS_START_ADDRESS as event_flags_start,
+    EVENT_FLAGS_END_ADDRESS as event_flags_end,
+    MUSEUM_TICKET_ADDRESS,
+    PARTY_SIZE_ADDRESS,
+)
+museum_ticket = (MUSEUM_TICKET_ADDRESS, 0)
 
 class RedGymEnv(Env):
     def __init__(self, config=None):
@@ -214,7 +218,7 @@ class RedGymEnv(Env):
 
         self.update_heal_reward()
 
-        self.party_size = self.read_m(0xD163)
+        self.party_size = self.read_m(PARTY_SIZE_ADDRESS)
 
         new_reward = self.update_reward()
 
@@ -272,7 +276,7 @@ class RedGymEnv(Env):
                 "map": map_n,
                 "max_map_progress": self.max_map_progress,
                 "last_action": action,
-                "pcount": self.read_m(0xD163),
+                "pcount": self.read_m(PARTY_SIZE_ADDRESS),
                 "levels": levels,
                 "levels_sum": sum(levels),
                 "ptypes": self.read_party(),
@@ -547,7 +551,7 @@ class RedGymEnv(Env):
     def update_heal_reward(self):
         cur_health = self.read_hp_fraction()
         # if health increased and party size did not change
-        if cur_health > self.last_health and self.read_m(0xD163) == self.party_size:
+        if cur_health > self.last_health and self.read_m(PARTY_SIZE_ADDRESS) == self.party_size:
             if self.last_health > 0:
                 heal_amount = cur_health - self.last_health
                 self.total_healing_rew += heal_amount * heal_amount
