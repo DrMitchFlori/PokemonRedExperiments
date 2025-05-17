@@ -2,7 +2,9 @@
 
 ### New 10-19-24! Updated & Simplified V2 Training Script - See V2 below
 ### New 1-29-24! - [Multiplayer Live Training Broadcast](https://github.com/pwhiddy/pokerl-map-viz/)  🎦 🔴 [View Here](https://pwhiddy.github.io/pokerl-map-viz/)
-Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)  
+Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)
+
+### New 6-08-25! Updated V3 Workflow - See V3 below
 
 See how in [Training Broadcast](#training-broadcast) section
   
@@ -32,21 +34,21 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 
 ### Linux / MacOS
 
-V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
+V3 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v3` (use `v2` if you prefer the older workflow).
 
 1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
-2. Move into the `baselines/` directory:  
- ```cd baselines```  
+2. Move into the `v3/` directory:
+ ```cd v3```
 3. Install dependencies:  
 ```pip install -r requirements.txt```  
 It may be necessary in some cases to separately install the SDL libraries.  
-4. Run:  
+4. Run a quick test:
 ```python run_pretrained_interactive.py```
   
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
 You can pause the AI's input during the game by editing `agent_enabled.txt`
 
-Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `baselines/` directory in order for this to work.
+Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `v3/` directory in order for this to work.
 
 ## Training the Model 🏋️ 
 
@@ -64,6 +66,17 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+
+### V3
+
+- Further optimizations for stable long sessions
+- Updated dependency versions
+- Improved exploration rewards
+- Requires Python 3.11+ and the packages listed in `v3/requirements.txt`
+
+1. Previous steps but in the `v3` directory
+2. Start training with:
+```python baseline_fast_v3.py```
 
 ## Tracking Training Progress 📈
 
