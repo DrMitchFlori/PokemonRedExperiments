@@ -64,6 +64,12 @@ Replaces the frame KNN with a coordinate based exploration reward, as well as so
 1. Previous steps but in the `v2` directory instead of `baselines`
 2. Run:
 ```python baseline_fast_v2.py```
+3. *(Optional)* Verify your setup with a short test run:
+```bash
+./run_small_test.sh
+```
+This launches `baseline_fast_v2.py` with minimal resources and prints a success
+message when everything is configured correctly.
 
 ## Tracking Training Progress 📈
 
