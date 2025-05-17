@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import logging
 
 import gymnasium as gym
 
@@ -19,7 +20,7 @@ class StreamWrapper(gym.Wrapper):
             self.establish_wc_connection()
         )
         self.upload_interval = 300
-        self.steam_step_counter = 0
+        self.stream_step_counter = 0
         self.env = env
         self.coord_list = []
         if hasattr(env, "pyboy"):
@@ -36,7 +37,7 @@ class StreamWrapper(gym.Wrapper):
         map_n = self.emulator.memory[MAP_N_ADDRESS]
         self.coord_list.append([x_pos, y_pos, map_n])
 
-        if self.steam_step_counter >= self.upload_interval:
+        if self.stream_step_counter >= self.upload_interval:
             self.stream_metadata["extra"] = f"coords: {len(self.env.seen_coords)}"
             self.loop.run_until_complete(
                 self.broadcast_ws_message(
@@ -48,10 +49,10 @@ class StreamWrapper(gym.Wrapper):
                     )
                 )
             )
-            self.steam_step_counter = 0
+            self.stream_step_counter = 0
             self.coord_list = []
 
-        self.steam_step_counter += 1
+        self.stream_step_counter += 1
 
         return self.env.step(action)
 
@@ -61,11 +62,20 @@ class StreamWrapper(gym.Wrapper):
         if self.websocket is not None:
             try:
                 await self.websocket.send(message)
-            except websockets.exceptions.WebSocketException as e:
+            except websockets.exceptions.WebSocketException:
+                logging.exception("Websocket send failed, attempting to reconnect")
                 self.websocket = None
+                await self.establish_wc_connection()
+                if self.websocket is not None:
+                    try:
+                        await self.websocket.send(message)
+                    except websockets.exceptions.WebSocketException:
+                        logging.exception("Reconnect attempt failed")
+                        self.websocket = None
 
     async def establish_wc_connection(self):
         try:
             self.websocket = await websockets.connect(self.ws_address)
-        except:
+        except Exception as e:
+            logging.exception("Failed to establish websocket connection")
             self.websocket = None
