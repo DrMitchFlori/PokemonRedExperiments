@@ -73,7 +73,8 @@ class PokeRedEnv(Env):
         ]
 
         # load event names (parsed from https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm)
-        with open("events.json") as f:
+        events_path = Path(__file__).resolve().parent / "events.json"
+        with open(events_path) as f:
             event_names = json.load(f)
         self.event_names = event_names
 

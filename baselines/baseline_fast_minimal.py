@@ -21,8 +21,9 @@ def make_env(rank, seed=0):
     :param rank: (int) index of the subprocess
     """
     def _init():
+        base_dir = Path(__file__).resolve().parent.parent
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
+            PokeRedEnv(base_dir / 'PokemonRed.gb', base_dir / 'has_pokedex_nballs.state'),
             stream_metadata = { # All of this is part is optional
                 "user": "v3-test", # choose your own username
                 "env_id": rank, # environment identifier
