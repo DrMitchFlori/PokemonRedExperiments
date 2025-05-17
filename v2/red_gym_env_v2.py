@@ -13,14 +13,16 @@ from einops import repeat
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 
-from global_map import local_to_global, GLOBAL_MAP_SHAPE
+from common.global_map import local_to_global, GLOBAL_MAP_SHAPE
 
 event_flags_start = 0xD747
 event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6 
 museum_ticket = (0xD754, 0)
 
 class RedGymEnv(Env):
-    def __init__(self, config=None):
+    """Gymnasium environment for Pokemon Red using PyBoy."""
+
+    def __init__(self, config: dict | None = None):
         self.s_path = config["session_path"]
         self.save_final_state = config["save_final_state"]
         self.print_rewards = config["print_rewards"]
@@ -80,7 +82,8 @@ class RedGymEnv(Env):
         ]
 
         # load event names (parsed from https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm)
-        with open("events.json") as f:
+        events_path = Path(__file__).resolve().parent.parent / "common" / "events.json"
+        with open(events_path) as f:
             event_names = json.load(f)
         self.event_names = event_names
 
@@ -120,7 +123,10 @@ class RedGymEnv(Env):
         if not config["headless"]:
             self.pyboy.set_emulation_speed(6)
 
-    def reset(self, seed=None, options={}):
+    def reset(self, seed: int | None = None, options: dict | None = None):
+        """Reset the environment state."""
+        if options is None:
+            options = {}
         self.seed = seed
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
@@ -198,7 +204,8 @@ class RedGymEnv(Env):
 
         return observation
 
-    def step(self, action):
+    def step(self, action: int):
+        """Run one timestep of the environment."""
 
         if self.save_video and self.step_count == 0:
             self.start_video()
@@ -246,7 +253,8 @@ class RedGymEnv(Env):
 
         return obs, new_reward, False, step_limit_reached, {}
     
-    def run_action_on_emulator(self, action):
+    def run_action_on_emulator(self, action: int) -> None:
+        """Send an action to the emulator."""
         # press button then release after some steps
         self.pyboy.send_input(self.valid_actions[action])
         # disable rendering when we don't need it

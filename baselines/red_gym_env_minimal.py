@@ -18,10 +18,12 @@ event_flags_end = 0xD7F6 # 0xD761 # 0xD886 temporarily lower event flag range fo
 museum_ticket = (0xD754, 0)
 
 class PokeRedEnv(Env):
+    """Simplified PyBoy environment for quick experiments."""
+
     def __init__(
-            self, gb_path, init_state,
-            max_steps=2048*8, headless=True,
-            action_frequency=24, downscale_factor=2):
+            self, gb_path: str, init_state: str,
+            max_steps: int = 2048*8, headless: bool = True,
+            action_frequency: int = 24, downscale_factor: int = 2):
         
         self.headless = headless
         self.init_state = init_state
@@ -73,7 +75,8 @@ class PokeRedEnv(Env):
         ]
 
         # load event names (parsed from https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm)
-        with open("events.json") as f:
+        events_path = Path(__file__).resolve().parent.parent / "common" / "events.json"
+        with open(events_path) as f:
             event_names = json.load(f)
         self.event_names = event_names
 
@@ -89,7 +92,10 @@ class PokeRedEnv(Env):
         if not self.headless:
             self.pyboy.set_emulation_speed(6)
 
-    def reset(self, seed=0, options={}):
+    def reset(self, seed: int = 0, options: dict | None = None):
+        """Reset the environment state."""
+        if options is None:
+            options = {}
         # restart game, skipping credits
         with open(self.init_state, "rb") as f:
             self.pyboy.load_state(f)
@@ -143,7 +149,8 @@ class PokeRedEnv(Env):
 
         return observation
 
-    def step(self, action):
+    def step(self, action: int):
+        """Run one timestep of the environment."""
 
         self.run_action_on_emulator(action)
         self.append_agent_stats(action)
@@ -194,7 +201,8 @@ class PokeRedEnv(Env):
 
         return obs, new_rew, False, step_limit_reached, {}
     
-    def run_action_on_emulator(self, action):
+    def run_action_on_emulator(self, action: int) -> None:
+        """Send an action to the emulator."""
         # press button then release after some steps
         self.pyboy.send_input(self.valid_actions[action])
         # disable rendering when we don't need it
