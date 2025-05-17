@@ -1,4 +1,5 @@
 import sys
+import os
 from os.path import exists
 from pathlib import Path
 from red_gym_env_v2 import RedGymEnv
@@ -36,7 +37,7 @@ def make_env(rank, env_conf, seed=0):
 if __name__ == "__main__":
 
     use_wandb_logging = False
-    ep_length = 2048 * 80
+    ep_length = int(os.environ.get("EP_LENGTH", 2048 * 80))
     sess_id = "runs"
     sess_path = Path(sess_id)
 
@@ -48,8 +49,8 @@ if __name__ == "__main__":
             }
     
     print(env_config)
-    
-    num_cpu = 64 # Also sets the number of episodes per training iteration
+
+    num_cpu = int(os.environ.get("NUM_CPU", 64))  # Also sets the number of episodes per training iteration
     env = SubprocVecEnv([make_env(i, env_config) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length//2, save_path=sess_path,
@@ -95,7 +96,8 @@ if __name__ == "__main__":
     
     print(model.policy)
 
-    model.learn(total_timesteps=(ep_length)*num_cpu*10000, callback=CallbackList(callbacks), tb_log_name="poke_ppo")
+    total_timesteps = int(os.environ.get("TOTAL_TIMESTEPS", (ep_length)*num_cpu*10000))
+    model.learn(total_timesteps=total_timesteps, callback=CallbackList(callbacks), tb_log_name="poke_ppo")
 
     if use_wandb_logging:
         run.finish()
