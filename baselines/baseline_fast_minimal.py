@@ -9,7 +9,11 @@ from stable_baselines3.common.utils import set_random_seed
 from stable_baselines3.common.callbacks import CheckpointCallback, CallbackList
 from tensorboard_callback import TensorboardCallback
 
-from red_gym_env_v3_minimal import PokeRedEnv
+# Import the minimal environment implementation. A previous version of this
+# script referenced ``red_gym_env_v3_minimal`` which does not exist in this
+# repository. ``red_gym_env_minimal`` provides the required ``PokeRedEnv``
+# class, so we import it here instead.
+from red_gym_env_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
 def make_env(rank, seed=0):
