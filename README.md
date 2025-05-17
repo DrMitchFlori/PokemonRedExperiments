@@ -40,7 +40,10 @@ V2 is now recommended over the original version. You may follow all steps below 
 3. Install dependencies:  
 ```pip install -r requirements.txt```  
 It may be necessary in some cases to separately install the SDL libraries.  
-4. Run:  
+4. Download the pretrained checkpoints from the [releases page](https://github.com/pwhiddy/PokemonRedExperiments/releases) or your preferred cloud storage and place them here:
+   - `baselines/session_4da05e87_main_good/poke_439746560_steps.zip`
+   - `v2/runs/poke_26214400.zip` (for V2)
+5. Run:
 ```python run_pretrained_interactive.py```
   
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
