@@ -29,11 +29,20 @@ class StreamWrapper(gym.Wrapper):
         else:
             raise Exception("Could not find emulator!")
 
-    def step(self, action):
+    def _read_memory(self, address):
+        """Return a byte from emulator memory using the available API."""
+        if hasattr(self.emulator, "memory"):
+            return self.emulator.memory[address]
+        if hasattr(self.emulator, "get_memory_value"):
+            return self.emulator.get_memory_value(address)
+        raise AttributeError("Emulator memory access not supported")
 
-        x_pos = self.emulator.get_memory_value(X_POS_ADDRESS)
-        y_pos = self.emulator.get_memory_value(Y_POS_ADDRESS)
-        map_n = self.emulator.get_memory_value(MAP_N_ADDRESS)
+    def step(self, action):
+        """Execute a step and broadcast coordinates periodically."""
+
+        x_pos = self._read_memory(X_POS_ADDRESS)
+        y_pos = self._read_memory(Y_POS_ADDRESS)
+        map_n = self._read_memory(MAP_N_ADDRESS)
         self.coord_list.append([x_pos, y_pos, map_n])
 
         if self.steam_step_counter >= self.upload_interval:
