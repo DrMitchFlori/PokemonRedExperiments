@@ -13,7 +13,7 @@ from einops import repeat
 from gymnasium import Env, spaces
 from pyboy.utils import WindowEvent
 
-from global_map import local_to_global, GLOBAL_MAP_SHAPE
+from common.global_map import local_to_global, GLOBAL_MAP_SHAPE
 
 event_flags_start = 0xD747
 event_flags_end = 0xD87E # expand for SS Anne # old - 0xD7F6 
@@ -80,7 +80,8 @@ class RedGymEnv(Env):
         ]
 
         # load event names (parsed from https://github.com/pret/pokered/blob/91dc3c9f9c8fd529bb6e8307b58b96efa0bec67e/constants/event_constants.asm)
-        with open("events.json") as f:
+        event_file = Path(__file__).resolve().parent.parent / "common" / "events.json"
+        with open(event_file) as f:
             event_names = json.load(f)
         self.event_names = event_names
 
