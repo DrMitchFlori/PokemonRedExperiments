@@ -2,6 +2,8 @@ from os.path import exists
 from pathlib import Path
 import uuid
 
+from config_utils import load_paths
+
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
@@ -12,7 +14,7 @@ from tensorboard_callback import TensorboardCallback
 from red_gym_env_v3_minimal import PokeRedEnv
 from stream_agent_wrapper import StreamWrapper
 
-def make_env(rank, seed=0):
+def make_env(gb_path, init_state, rank, seed=0):
     """
     Utility function for multiprocessed env.
     :param env_id: (str) the environment ID
@@ -22,7 +24,7 @@ def make_env(rank, seed=0):
     """
     def _init():
         env = StreamWrapper(
-            PokeRedEnv('../PokemonRed.gb', '../has_pokedex_nballs.state'), 
+            PokeRedEnv(gb_path, init_state),
             stream_metadata = { # All of this is part is optional
                 "user": "v3-test", # choose your own username
                 "env_id": rank, # environment identifier
@@ -42,9 +44,10 @@ if __name__ == "__main__":
     sess_id = str(uuid.uuid4())[:8]
     sess_path = Path(f'session_{sess_id}')
 
-        
+    gb_path, init_state = load_paths('../PokemonRed.gb', '../has_pokedex_nballs.state')
+
     num_cpu = 24  # Also sets the number of episodes per training iteration
-    env = SubprocVecEnv([make_env(i) for i in range(num_cpu)])
+    env = SubprocVecEnv([make_env(gb_path, init_state, i) for i in range(num_cpu)])
     
     checkpoint_callback = CheckpointCallback(save_freq=ep_length, save_path=sess_path,
                                      name_prefix="poke")
