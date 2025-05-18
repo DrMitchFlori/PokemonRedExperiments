@@ -4,6 +4,7 @@ from pathlib import Path
 import uuid
 import time
 import glob
+from config_utils import load_paths
 from red_gym_env_v2 import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
@@ -48,11 +49,13 @@ if __name__ == '__main__':
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
     ep_length = 2**23
 
+    gb_path, init_state = load_paths('../PokemonRed.gb', '../init.state')
+
     env_config = {
                 'headless': False, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': init_state, 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
+                'gb_path': gb_path, 'debug': False, 'sim_frame_dist': 2_000_000.0, 'extra_buttons': False
             }
     
     num_cpu = 1 #64 #46  # Also sets the number of episodes per training iteration

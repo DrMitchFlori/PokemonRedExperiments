@@ -1,6 +1,8 @@
 from os.path import exists
 from pathlib import Path
 import uuid
+
+from config_utils import load_paths
 from red_gym_env import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
@@ -29,11 +31,13 @@ if __name__ == '__main__':
     ep_length = 2048 * 8
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
 
+    gb_path, init_state = load_paths('../PokemonRed.gb', '../has_pokedex_nballs.state')
+
     env_config = {
                 'headless': True, 'save_final_state': True, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../has_pokedex_nballs.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': init_state, 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'sim_frame_dist': 2_000_000.0, 
+                'gb_path': gb_path, 'debug': False, 'sim_frame_dist': 2_000_000.0,
                 'use_screen_explore': True, 'extra_buttons': False
             }
     

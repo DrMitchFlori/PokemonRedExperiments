@@ -2,6 +2,7 @@ import sys
 from os.path import exists
 from pathlib import Path
 from red_gym_env_v2 import RedGymEnv
+from config_utils import load_paths
 from stream_agent_wrapper import StreamWrapper
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
@@ -40,11 +41,12 @@ if __name__ == "__main__":
     sess_id = "runs"
     sess_path = Path(sess_id)
 
+    gb_path, init_state = load_paths()
     env_config = {
                 'headless': True, 'save_final_state': False, 'early_stop': False,
-                'action_freq': 24, 'init_state': '../init.state', 'max_steps': ep_length, 
+                'action_freq': 24, 'init_state': init_state, 'max_steps': ep_length,
                 'print_rewards': True, 'save_video': False, 'fast_video': True, 'session_path': sess_path,
-                'gb_path': '../PokemonRed.gb', 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
+                'gb_path': gb_path, 'debug': False, 'reward_scale': 0.5, 'explore_weight': 0.25
             }
     
     print(env_config)
