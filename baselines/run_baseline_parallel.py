@@ -61,3 +61,5 @@ if __name__ == '__main__':
     
     for i in range(learn_steps):
         model.learn(total_timesteps=(ep_length)*num_cpu*1000, callback=checkpoint_callback)
+
+    env.close()
