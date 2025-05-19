@@ -1,4 +1,3 @@
-import pytest
 from global_map import (
     local_to_global,
     MAP_DATA,
