@@ -90,3 +90,18 @@ class StreamWrapper(gym.Wrapper):
                 e,
             )
             self.websocket = None
+
+    def close(self):
+        """Close WebSocket connection and underlying environment."""
+        if self.websocket is not None:
+            try:
+                self.loop.run_until_complete(self.websocket.close())
+            except Exception as e:  # pragma: no cover - best effort
+                logging.warning("Error closing websocket: %s", e)
+            finally:
+                self.websocket = None
+
+        if not self.loop.is_closed():
+            self.loop.close()
+
+        super().close()

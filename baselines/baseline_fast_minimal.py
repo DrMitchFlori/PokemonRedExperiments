@@ -91,3 +91,5 @@ if __name__ == "__main__":
 
     if use_wandb_logging:
         run.finish()
+
+    env.close()
