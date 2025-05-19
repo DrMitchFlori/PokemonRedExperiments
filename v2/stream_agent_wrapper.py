@@ -1,3 +1,11 @@
+"""Legacy broadcast wrapper used by the v2 training scripts.
+
+This module exposes ``StreamWrapper`` which mirrors the v3 wrapper but
+reads emulator memory directly when collecting coordinates. Player positions
+are periodically sent to ``wss://transdimensional.xyz/broadcast`` so that
+training can be visualized on the shared map.
+"""
+
 import asyncio
 import websockets
 import json

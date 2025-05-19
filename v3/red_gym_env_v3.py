@@ -1,3 +1,12 @@
+"""Gym environment for training agents in Pokémon Red.
+
+This module defines :class:`RedGymEnv`, a ``gymnasium.Env`` subclass that
+drives the PyBoy emulator. It exposes game state (screens, health, badges,
+and event flags) as observations and translates discrete actions into button
+presses. The environment also manages save states, optional video capture and
+tracking exploration progress for reinforcement learning experiments.
+"""
+
 import uuid
 import json
 from pathlib import Path
