@@ -1,6 +1,7 @@
 import asyncio
 import websockets
 import json
+import logging
 
 import gymnasium as gym
 
@@ -74,5 +75,10 @@ class StreamWrapper(gym.Wrapper):
     async def establish_wc_connection(self):
         try:
             self.websocket = await websockets.connect(self.ws_address)
-        except:
+        except Exception as e:
+            logging.warning(
+                "Failed to establish websocket connection to %s: %s",
+                self.ws_address,
+                e,
+            )
             self.websocket = None
