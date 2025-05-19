@@ -1,3 +1,11 @@
+"""WebSocket broadcast wrapper for Gym environments.
+
+``StreamWrapper`` decorates an environment to send the player's in-game
+coordinates to ``wss://transdimensional.xyz/broadcast``. This enables live
+visualization of training progress on the shared online map. Wrap your Gym
+environment with this class prior to training.
+"""
+
 import asyncio
 import websockets
 import json
