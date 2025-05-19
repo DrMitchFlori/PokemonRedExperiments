@@ -46,7 +46,7 @@ It may be necessary in some cases to separately install the SDL libraries.
 Interact with the emulator using the arrow keys and the `a` and `s` keys (A and B buttons).  
 You can pause the AI's input during the game by editing `agent_enabled.txt`
 
-Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `baselines/` directory in order for this to work.
+Note: the Pokemon.gb file MUST be in the main directory and your current directory MUST be the `v3/` directory in order for this to work.
 
 ## Training the Model 🏋️ 
 
