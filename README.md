@@ -1,6 +1,6 @@
 # Train RL agents to play Pokemon Red
 
-### New 10-19-24! Updated & Simplified V2 Training Script - See V2 below
+### New 10-19-24! Updated & Simplified V3 Training Script - See V3 below
 ### New 1-29-24! - [Multiplayer Live Training Broadcast](https://github.com/pwhiddy/pokerl-map-viz/)  🎦 🔴 [View Here](https://pwhiddy.github.io/pokerl-map-viz/)
 Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)  
 
@@ -32,11 +32,11 @@ Follow this [guide to install pytorch with ROCm support](https://rocm.docs.amd.c
 
 ### Linux / MacOS
 
-V2 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v2`.
+V3 is now recommended over the original version. You may follow all steps below but replace `baselines` with `v3`.
 
 1. Copy your legally obtained Pokemon Red ROM into the base directory. You can find this using google, it should be 1MB. Rename it to `PokemonRed.gb` if it is not already. The sha1 sum should be `ea9bcae617fdf159b045185467ae58b2e4a48b9a`, which you can verify by running `shasum PokemonRed.gb`. 
-2. Move into the `baselines/` directory:  
- ```cd baselines```  
+2. Move into the `v3/` directory:
+ ```cd v3```
 3. Install dependencies:  
 ```pip install -r requirements.txt```  
 It may be necessary in some cases to separately install the SDL libraries.  
@@ -53,17 +53,18 @@ Note: the Pokemon.gb file MUST be in the main directory and your current directo
 <img src="/assets/grid.png?raw=true" height="156">
 
 
-### V2
+### V3
 
-- Trains faster and with less memory
-- Reaches Cerulean
-- Streams to map by default
-- Other improvements
+- Faster and more memory-efficient than V2
+- Extended training path that reaches SS Anne
+- Streams progress to the shared map by default
+- Improved exploration reward and simplified setup
+- New script `baseline_fast_v3.py` handles training
+- Dependencies are listed in `v3/requirements.txt`
 
-Replaces the frame KNN with a coordinate based exploration reward, as well as some other tweaks.
-1. Previous steps but in the `v2` directory instead of `baselines`
+1. Previous steps but in the `v3` directory instead of `baselines`
 2. Run:
-```python baseline_fast_v2.py```
+```python baseline_fast_v3.py```
 
 ## Tracking Training Progress 📈
 
