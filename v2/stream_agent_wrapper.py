@@ -8,6 +8,13 @@ X_POS_ADDRESS, Y_POS_ADDRESS = 0xD362, 0xD361
 MAP_N_ADDRESS = 0xD35E
 
 class StreamWrapper(gym.Wrapper):
+    """Gym wrapper for broadcasting coordinate data via WebSocket.
+
+    The ``stream_step_counter`` attribute tracks how many environment
+    steps have occurred since the last broadcast so that updates are sent
+    periodically.
+    """
+
     def __init__(self, env, stream_metadata={}):
         super().__init__(env)
         self.ws_address = "wss://transdimensional.xyz/broadcast"
@@ -19,7 +26,7 @@ class StreamWrapper(gym.Wrapper):
             self.establish_wc_connection()
         )
         self.upload_interval = 300
-        self.steam_step_counter = 0
+        self.stream_step_counter = 0
         self.env = env
         self.coord_list = []
         if hasattr(env, "pyboy"):
@@ -36,7 +43,7 @@ class StreamWrapper(gym.Wrapper):
         map_n = self.emulator.memory[MAP_N_ADDRESS]
         self.coord_list.append([x_pos, y_pos, map_n])
 
-        if self.steam_step_counter >= self.upload_interval:
+        if self.stream_step_counter >= self.upload_interval:
             self.stream_metadata["extra"] = f"coords: {len(self.env.seen_coords)}"
             self.loop.run_until_complete(
                 self.broadcast_ws_message(
@@ -48,10 +55,10 @@ class StreamWrapper(gym.Wrapper):
                     )
                 )
             )
-            self.steam_step_counter = 0
+            self.stream_step_counter = 0
             self.coord_list = []
 
-        self.steam_step_counter += 1
+        self.stream_step_counter += 1
 
         return self.env.step(action)
 
