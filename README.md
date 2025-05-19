@@ -2,7 +2,7 @@
 
 ### New 10-19-24! Updated & Simplified V3 Training Script - See V3 below
 ### New 1-29-24! - [Multiplayer Live Training Broadcast](https://github.com/pwhiddy/pokerl-map-viz/)  🎦 🔴 [View Here](https://pwhiddy.github.io/pokerl-map-viz/)
-Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py)  
+Stream your training session to a shared global game map using the [Broadcast Wrapper](/stream_wrapper.py)
 
 See how in [Training Broadcast](#training-broadcast) section
   
@@ -69,7 +69,7 @@ Note: the Pokemon.gb file MUST be in the main directory and your current directo
 ## Tracking Training Progress 📈
 
 ### Training Broadcast
-Stream your training session to a shared global game map using the [Broadcast Wrapper](/baselines/stream_agent_wrapper.py) on your environment like this:
+Stream your training session to a shared global game map using the [Broadcast Wrapper](/stream_wrapper.py) on your environment like this:
 ```python
 env = StreamWrapper(
             env, 

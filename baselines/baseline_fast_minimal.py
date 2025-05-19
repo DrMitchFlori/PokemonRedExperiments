@@ -1,5 +1,6 @@
 from os.path import exists
 from pathlib import Path
+import sys
 import uuid
 
 from stable_baselines3 import PPO
@@ -11,7 +12,8 @@ from tensorboard_callback import TensorboardCallback
 
 # Import the minimal PokeRed environment
 from red_gym_env_minimal import PokeRedEnv
-from stream_agent_wrapper import StreamWrapper
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from stream_wrapper import StreamWrapper
 
 def make_env(rank, seed=0):
     """

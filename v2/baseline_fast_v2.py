@@ -2,7 +2,8 @@ import sys
 from os.path import exists
 from pathlib import Path
 from red_gym_env_v2 import RedGymEnv
-from stream_agent_wrapper import StreamWrapper
+sys.path.append(str(Path(__file__).resolve().parents[1]))
+from stream_wrapper import StreamWrapper
 from stable_baselines3 import PPO
 from stable_baselines3.common import env_checker
 from stable_baselines3.common.vec_env import SubprocVecEnv
