@@ -1,5 +1,11 @@
 import pytest
-from v2.global_map import local_to_global, MAP_DATA, GLOBAL_MAP_SHAPE, MAP_ROW_OFFSET, MAP_COL_OFFSET
+from global_map import (
+    local_to_global,
+    MAP_DATA,
+    GLOBAL_MAP_SHAPE,
+    MAP_ROW_OFFSET,
+    MAP_COL_OFFSET,
+)
 
 
 def test_local_to_global_valid():
