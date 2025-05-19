@@ -1,5 +1,53 @@
 import numpy as np
-from v2.red_gym_env_v2 import RedGymEnv
+import importlib
+import sys
+import types
+
+
+def load_env_module():
+    """Import RedGymEnv from v3 with stubbed dependencies."""
+    stubs = {
+        "skimage": types.ModuleType("skimage"),
+        "skimage.transform": types.ModuleType("skimage.transform"),
+        "matplotlib": types.ModuleType("matplotlib"),
+        "matplotlib.pyplot": types.ModuleType("matplotlib.pyplot"),
+        "pyboy": types.ModuleType("pyboy"),
+        "pyboy.utils": types.ModuleType("pyboy.utils"),
+        "mediapy": types.ModuleType("mediapy"),
+        "einops": types.ModuleType("einops"),
+        "gymnasium": types.ModuleType("gymnasium"),
+    }
+
+    stubs["skimage"].transform = stubs["skimage.transform"]
+    stubs["skimage.transform"].downscale_local_mean = lambda *a, **k: None
+
+    stubs["matplotlib"].pyplot = stubs["matplotlib.pyplot"]
+
+    stubs["pyboy"].PyBoy = object
+    stubs["pyboy.utils"].WindowEvent = object
+
+    stubs["mediapy"].write_video = lambda *a, **k: None
+    stubs["einops"].repeat = lambda *a, **k: None
+
+    class _Env:  # minimal gymnasium.Env stub
+        pass
+
+    stubs["gymnasium"].Env = _Env
+    stubs["gymnasium"].spaces = types.SimpleNamespace(
+        Box=object,
+        Dict=object,
+        MultiBinary=object,
+        MultiDiscrete=object,
+        Discrete=object,
+    )
+
+    for name, module in stubs.items():
+        sys.modules.setdefault(name, module)
+
+    return importlib.import_module("v3.red_gym_env_v3")
+
+
+RedGymEnv = load_env_module().RedGymEnv
 
 
 def make_env(freqs=4):
