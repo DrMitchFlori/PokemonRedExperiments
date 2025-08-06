@@ -1,6 +1,7 @@
 from os.path import exists
 from pathlib import Path
 import uuid
+import logging
 from red_gym_env import RedGymEnv
 from stable_baselines3 import A2C, PPO
 from stable_baselines3.common import env_checker
@@ -24,6 +25,8 @@ def make_env(rank, env_conf, seed=0):
     return _init
 
 if __name__ == '__main__':
+
+    logging.basicConfig(level=logging.INFO)
 
     sess_path = Path(f'session_{str(uuid.uuid4())[:8]}')
     ep_length = 2**23
@@ -51,7 +54,8 @@ if __name__ == '__main__':
         try:
             with open("agent_enabled.txt", "r") as f:
                 agent_enabled = f.readlines()[0].startswith("yes")
-        except:
+        except (OSError, IndexError) as exc:
+            logging.warning("Failed to read agent_enabled.txt: %s", exc)
             agent_enabled = False
         if agent_enabled:
             action, _states = model.predict(obs, deterministic=False)
