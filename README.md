@@ -96,6 +96,16 @@ To enable wandb integration, change `use_wandb_logging` in the training script t
 ## Static Visualization 🐜
 Map visualization code can be found in `visualization/` directory.
 
+To run these utilities you will need a few extra Python packages.  Install them
+with:
+
+```bash
+pip install -r visualization/requirements.txt
+```
+
+The file lists dependencies such as `requests`, `holoviews`, `colorcet`, and
+other libraries used by the visualization scripts.
+
 ## Supporting Libraries
 Check out these awesome projects!
 ### [PyBoy](https://github.com/Baekalfen/PyBoy)
