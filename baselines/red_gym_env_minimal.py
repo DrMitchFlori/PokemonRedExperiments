@@ -447,10 +447,10 @@ class PokeRedEnv(Env):
             60: {"name": "Mt. Moon Corridors", "coordinates": np.array([168, 253])},
             61: {"name": "Mt. Moon Level 2", "coordinates": np.array([197, 253])},
             68: {"name": "Pokémon Center (Route 3)", "coordinates": np.array([135, 197])},
-            193: {"name": "Badges check gate (Route 22)", "coordinates": np.array([0, 87])}, # TODO this coord is guessed, needs to be updated
+            193: {"name": "Badges check gate (Route 22)", "coordinates": np.array([23, 79])},
             230: {"name": "Badge Man House (Cerulean City)", "coordinates": np.array([290, 137])}
         }
         if map_idx in map_locations.keys():
             return map_locations[map_idx]
         else:
-            return {"name": "Unknown", "coordinates": np.array([80, 0])} # TODO once all maps are added this case won't be needed
+            raise KeyError(f"Map id {map_idx} not found in map_locations")
