@@ -1,4 +1,6 @@
 __pycache__
+baselines/__pycache__/
+v2/__pycache__/
 .DS_Store
 rollouts
 *.gb
