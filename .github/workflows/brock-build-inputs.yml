@@ -1,0 +1,41 @@
+name: Brock build inputs
+on:
+  push:
+    branches: ['jev-brock/verified-run-20260923']
+    paths: ['.github/workflows/brock-build-inputs.yml']
+permissions:
+  contents: read
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Compile tools and fetch pinned source
+        shell: bash
+        run: |
+          set -euo pipefail
+          cd "$RUNNER_TEMP"
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq bison flex libpng-dev pkg-config
+          git clone --depth 1 --branch v1.0.4 https://github.com/gbdev/rgbds.git
+          make -C rgbds -j2
+          mkdir -p inputs/tools inputs/wheels inputs/checkpoints
+          cp rgbds/rgbasm rgbds/rgblink rgbds/rgbfix rgbds/rgbgfx inputs/tools/
+          git clone https://github.com/pret/pokered.git inputs/pokered
+          git -C inputs/pokered checkout d2704a63c26f9ba046ade877445216b3de0519a4
+          git -C inputs/pokered rev-parse HEAD > inputs/source_revision.txt
+          git -C rgbds rev-parse HEAD > inputs/rgbds_revision.txt
+          rm -rf inputs/pokered/.git
+          python -m pip wheel --wheel-dir inputs/wheels pyboy==2.6.1 pillow
+          cp "$GITHUB_WORKSPACE"/*.state inputs/checkpoints/
+          test -z "$(find inputs -type f \( -name '*.gb' -o -name '*.gbc' \) -print)"
+          tar -czf brock-build-inputs.tar.gz -C inputs .
+      - uses: actions/upload-artifact@v4
+        with:
+          name: brock-build-inputs
+          path: ${{ runner.temp }}/brock-build-inputs.tar.gz
+          retention-days: 2
